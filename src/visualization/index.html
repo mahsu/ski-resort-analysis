@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ski Resort Run Steepness Comparison</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Ski Resort Run Steepness Comparison</h1>
+    <div class="controls">
+      <div class="control-row">
+        <label>Resort A</label>
+        <select id="resort-a" aria-label="Select first resort"></select>
+        <label>Resort B</label>
+        <select id="resort-b" aria-label="Select second resort"></select>
+      </div>
+      <div class="control-row">
+        <span class="toggle-label">Pitch metric</span>
+        <div class="toggle" role="group" aria-label="Pitch metric">
+          <button type="button" id="metric-avg" class="toggle-btn active">Average Pitch</button>
+          <button type="button" id="metric-max" class="toggle-btn">Max Pitch</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="toggle-label">Chart style</span>
+        <div class="toggle" role="group" aria-label="Chart style">
+          <button type="button" id="chart-bars" class="toggle-btn active">Stacked Bars</button>
+          <button type="button" id="chart-lines" class="toggle-btn">Smooth Lines</button>
+        </div>
+      </div>
+      <div class="control-row checkboxes">
+        <label class="checkbox">
+          <input type="checkbox" id="show-aggregate" checked>
+          Compare against all-resorts aggregate
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="normalize-y">
+          Normalize y-axis to % of runs
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="chart-wrap">
+      <div id="chart" class="chart"></div>
+      <div id="tooltip" class="tooltip" aria-hidden="true"></div>
+    </div>
+
+    <aside class="sidebar">
+      <section class="legend">
+        <div id="resort-legend-wrap" style="display:none">
+          <h2>Resorts</h2>
+          <div class="legend-items" id="resort-legend"></div>
+        </div>
+        <h2>Difficulty <span id="difficulty-legend-note" class="legend-subhead"></span></h2>
+        <div class="legend-items" id="legend"></div>
+        <p class="legend-note aggregate-note">Gray dashed line: all resorts</p>
+      </section>
+      <section class="stats">
+        <h2>Resort stats</h2>
+        <div id="stats-a" class="stat-card"></div>
+        <div id="stats-b" class="stat-card"></div>
+      </section>
+      <section class="insights">
+        <h2>Insights</h2>
+        <div id="insights" class="insight-cards"></div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

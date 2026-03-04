@@ -1,0 +1,14 @@
+---
+description: Run Python scripts only after activating the project virtualenv
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python and Virtualenv
+
+When running Python scripts or commands in this project, always activate the project's virtualenv first.
+
+- **Before running**: Activate the virtualenv (e.g. `source .venv/bin/activate` or `source venv/bin/activate`).
+- **Then run** the script or command (e.g. `python script.py` or `python -m module`).
+
+When suggesting or executing terminal commands that run Python, include the activation step, or run via the venv’s interpreter explicitly (e.g. `.venv/bin/python script.py`).
