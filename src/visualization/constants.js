@@ -1,16 +1,16 @@
 export const BIN_WIDTH = 5;
-export const MAX_PITCH = 90;
+export const MAX_PITCH = 70;
 
 export const RESORT_COLORS = { A: "#22d3ee", B: "#fb923c" };
 
 export const COLORS = ["green", "blue", "black", "grey", "orange"];
 
 export const COLOR_LABELS = {
-  green: "Easy/Novice",
+  green: "Easy",
   blue: "Intermediate",
-  black: "Advanced/Expert",
-  grey: "Extreme/Other",
-  orange: "Other",
+  black: "Advanced",
+  grey: "Expert",
+  orange: "Extreme",
 };
 
 export const PITCH_FIELDS = {

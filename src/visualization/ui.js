@@ -54,8 +54,14 @@ function pctRunsAbove(runs, metric, thresholdPct) {
 export function renderStatCard(elId, resortName, runs, state) {
   const el = $(elId);
   if (!el) return;
+  const badge = elId === "stats-a" ? "a" : "b";
+  const label = badge === "a" ? "A" : "B";
   if (!resortName || !runs || !runs.length) {
-    el.innerHTML = resortName ? "<p>No pitch data</p>" : "<p>Select a resort</p>";
+    el.innerHTML =
+      `<div class="stat-card-header">` +
+      `<span class="stat-card-name stat-empty">${resortName || "Select a resort"}</span>` +
+      `<span class="stat-card-badge ${badge}">${label}</span>` +
+      `</div>`;
     return;
   }
   const { metric } = state;
@@ -66,11 +72,25 @@ export function renderStatCard(elId, resortName, runs, state) {
   COLORS.forEach((c) => {
     byColor[c] = runs.filter((r) => (r.color || "").toLowerCase() === c).length;
   });
+  const metricLabel = metric === "average_pitch" ? "Avg pitch (median)" : "Max pitch (median)";
+  const diffItems = COLORS.map((c) =>
+    `<div class="stat-diff-item">` +
+    `<span class="stat-diff-dot" style="background:${COLOR_HEX[c]}"></span>` +
+    `<span>${COLOR_LABELS[c]}</span>` +
+    `<span class="stat-diff-count">${byColor[c] || 0}</span>` +
+    `</div>`
+  ).join("");
   el.innerHTML =
-    `<h3>${resortName}</h3>` +
-    `<dl><dt>Median ${metric === "average_pitch" ? "avg" : "max"} pitch</dt><dd>${med != null ? med.toFixed(1) + "%" : "—"}</dd>` +
-    `<dt>% runs ≥ 40%</dt><dd>${pct40 != null ? pct40 + "%" : "—"}</dd>` +
-    `<dt>By difficulty</dt><dd>${COLORS.map((c) => `${COLOR_LABELS[c]}: ${byColor[c] || 0}`).join(", ")}</dd></dl>`;
+    `<div class="stat-card-header">` +
+    `<span class="stat-card-name">${resortName}</span>` +
+    `<span class="stat-card-badge ${badge}">${label}</span>` +
+    `</div>` +
+    `<div class="stat-card-body">` +
+    `<div class="stat-row"><span class="stat-label">${metricLabel}</span><span class="stat-value">${med != null ? med.toFixed(1) + "%" : "—"}</span></div>` +
+    `<div class="stat-row"><span class="stat-label">Runs ≥ 40% pitch</span><span class="stat-value">${pct40 != null ? pct40 + "%" : "—"}</span></div>` +
+    `<div class="stat-row"><span class="stat-label">By difficulty</span></div>` +
+    `<div class="stat-difficulty-grid">${diffItems}</div>` +
+    `</div>`;
 }
 
 function percentileRank(sortedArr, value) {
@@ -124,7 +144,7 @@ export function renderInsights(aggregate, state) {
       const rank = percentileRank(allBlack, m.black);
       if (rank != null) {
         addInsight(
-          `Expert/advanced (black) runs at ${resortB} are steeper than ${rank}% of US resorts (median ${m.black.toFixed(1)}% pitch).`
+          `Advanced (black) runs at ${resortB} are steeper than ${rank}% of US resorts (median ${m.black.toFixed(1)}% pitch).`
         );
       }
     }

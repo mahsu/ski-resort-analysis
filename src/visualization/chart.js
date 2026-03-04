@@ -131,7 +131,7 @@ export function drawChart(aggregate, resortCache, state) {
     dataA, dataB, aggBins, totalA, totalB, state, aggregate
   );
 
-  const useSmallMultiples = state.chartMode === "bars" && dataA != null && dataB != null;
+  const useSmallMultiples = state.chartMode === "bars";
 
   d3.select(chartEl).selectAll("*").remove();
 
@@ -160,7 +160,7 @@ export function drawChart(aggregate, resortCache, state) {
     .tickValues(d3.range(0, MAX_PITCH + 1, 10))
     .tickFormat((d) => d === MAX_PITCH ? d + "%+" : d + "%");
 
-  // ── Small multiples (bars mode, both resorts selected) ───────────────────
+  // ── Small multiples (bars mode) ──────────────────────────────────────────
   if (useSmallMultiples) {
     const barWidth = Math.max(2, (xScale(BIN_WIDTH) - xScale(0)) * 0.85);
     const panels = [
@@ -172,16 +172,8 @@ export function drawChart(aggregate, resortCache, state) {
       const isBottom = idx === panels.length - 1;
       const pg = svg.append("g").attr("transform", `translate(${margin.left},${offsetY})`);
 
-      // Per-panel free y-scale in raw mode; shared normalized scale otherwise.
-      let panelMax = 1;
-      if (!state.normalizeY) {
-        if (data) data.bins.forEach((b) => { if (b.total > panelMax) panelMax = b.total; });
-        if (state.showAggregate && aggBins.length && aggregate.total_runs && total) {
-          const s = d3.max(aggBins, (d) => d.count * (total / aggregate.total_runs)) || 0;
-          if (s > panelMax) panelMax = s;
-        }
-      }
-      const panelYDomain = state.normalizeY ? [0, normalizedMax * 1.05] : [0, panelMax * 1.05];
+      // Both panels share the same y-domain so their axes are always synced.
+      const panelYDomain = state.normalizeY ? [0, normalizedMax * 1.05] : [0, maxVal * 1.05];
       const panelYScale = d3.scaleLinear().domain(panelYDomain).range([SUB_H, 0]);
 
       pg.append("g").attr("class", "axis x-axis")
@@ -203,6 +195,14 @@ export function drawChart(aggregate, resortCache, state) {
       pg.append("text").attr("class", "panel-resort-label")
         .attr("x", 0).attr("y", SUB_TITLE_OFFSET)
         .attr("text-anchor", "start").text(name);
+
+      if (!data) {
+        pg.append("text")
+          .attr("x", innerWidth / 2).attr("y", SUB_H / 2)
+          .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+          .attr("fill", "#94a3b8").attr("font-size", "14px")
+          .text("Select a resort above");
+      }
 
       if (data) {
         const normalize = state.normalizeY && total ? 100 / total : 1;
@@ -240,7 +240,7 @@ export function drawChart(aggregate, resortCache, state) {
         });
       }
 
-      if (state.showAggregate && aggBins.length) {
+      if (data && state.showAggregate && aggBins.length) {
         const aggNorm = state.normalizeY && aggregate.total_runs
           ? 100 / aggregate.total_runs
           : (total && aggregate.total_runs ? total / aggregate.total_runs : 1);

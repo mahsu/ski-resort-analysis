@@ -4,23 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ski Resort Run Steepness Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
-    <h1>Ski Resort Run Steepness Comparison</h1>
+    <div class="header-top">
+      <span class="header-icon">⛷</span>
+      <h1>Ski Resort Run Steepness</h1>
+    </div>
     <div class="controls">
       <div class="control-row">
-        <label>Resort A</label>
+        <label class="resort-select-label"><span class="resort-dot a"></span> Resort A</label>
         <select id="resort-a" aria-label="Select first resort"></select>
-        <label>Resort B</label>
+        <label class="resort-select-label"><span class="resort-dot b"></span> Resort B</label>
         <select id="resort-b" aria-label="Select second resort"></select>
       </div>
       <div class="control-row">
         <span class="toggle-label">Pitch metric</span>
         <div class="toggle" role="group" aria-label="Pitch metric">
-          <button type="button" id="metric-avg" class="toggle-btn active">Average Pitch</button>
-          <button type="button" id="metric-max" class="toggle-btn">Max Pitch</button>
+          <button type="button" id="metric-avg" class="toggle-btn active">Average</button>
+          <button type="button" id="metric-max" class="toggle-btn">Max</button>
         </div>
       </div>
       <div class="control-row">
@@ -33,11 +38,11 @@
       <div class="control-row checkboxes">
         <label class="checkbox">
           <input type="checkbox" id="show-aggregate" checked>
-          Compare against all-resorts aggregate
+          All-resorts aggregate
         </label>
         <label class="checkbox">
           <input type="checkbox" id="normalize-y">
-          Normalize y-axis to % of runs
+          Normalize to % of runs
         </label>
       </div>
     </div>
@@ -50,24 +55,28 @@
     </div>
 
     <aside class="sidebar">
-      <section class="legend">
-        <div id="resort-legend-wrap" style="display:none">
-          <h2>Resorts</h2>
-          <div class="legend-items" id="resort-legend"></div>
-        </div>
-        <h2>Difficulty <span id="difficulty-legend-note" class="legend-subhead"></span></h2>
-        <div class="legend-items" id="legend"></div>
-        <p class="legend-note aggregate-note">Gray dashed line: all resorts</p>
-      </section>
-      <section class="stats">
-        <h2>Resort stats</h2>
-        <div id="stats-a" class="stat-card"></div>
-        <div id="stats-b" class="stat-card"></div>
-      </section>
-      <section class="insights">
-        <h2>Insights</h2>
-        <div id="insights" class="insight-cards"></div>
-      </section>
+      <div class="sidebar-left">
+        <section class="legend">
+          <div id="resort-legend-wrap" style="display:none">
+            <h2>Resorts</h2>
+            <div class="legend-items" id="resort-legend"></div>
+          </div>
+          <h2>Difficulty <span id="difficulty-legend-note" class="legend-subhead"></span></h2>
+          <div class="legend-items" id="legend"></div>
+          <p class="legend-note aggregate-note">All-resorts aggregate</p>
+        </section>
+        <section class="stats">
+          <h2>Stats</h2>
+          <div id="stats-a" class="stat-card"></div>
+          <div id="stats-b" class="stat-card"></div>
+        </section>
+      </div>
+      <div class="sidebar-right">
+        <section class="insights">
+          <h2>Insights</h2>
+          <div id="insights" class="insight-cards"></div>
+        </section>
+      </div>
     </aside>
   </main>
 
