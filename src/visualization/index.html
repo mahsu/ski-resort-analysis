@@ -17,9 +17,17 @@
     <div class="controls">
       <div class="control-row">
         <label class="resort-select-label"><span class="resort-dot a"></span> Resort A</label>
-        <select id="resort-a" aria-label="Select first resort"></select>
+        <div class="resort-combobox" id="resort-a-wrap">
+          <input type="text" id="resort-a" autocomplete="off" spellcheck="false" placeholder="Search resort…" aria-label="Select first resort" aria-autocomplete="list" aria-haspopup="listbox">
+          <button class="resort-clear" id="resort-a-clear" aria-label="Clear resort" hidden>✕</button>
+          <ul class="resort-dropdown" id="resort-a-dropdown" role="listbox" hidden></ul>
+        </div>
         <label class="resort-select-label"><span class="resort-dot b"></span> Resort B</label>
-        <select id="resort-b" aria-label="Select second resort"></select>
+        <div class="resort-combobox" id="resort-b-wrap">
+          <input type="text" id="resort-b" autocomplete="off" spellcheck="false" placeholder="Search resort…" aria-label="Select second resort" aria-autocomplete="list" aria-haspopup="listbox">
+          <button class="resort-clear" id="resort-b-clear" aria-label="Clear resort" hidden>✕</button>
+          <ul class="resort-dropdown" id="resort-b-dropdown" role="listbox" hidden></ul>
+        </div>
       </div>
       <div class="control-row">
         <span class="toggle-label">Pitch metric</span>

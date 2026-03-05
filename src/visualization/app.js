@@ -1,4 +1,4 @@
-import { loadAggregate, loadResort, fillResortSelect } from "./data.js";
+import { loadAggregate, loadResort, setupResortCombobox } from "./data.js";
 import { drawChart, bindToggle } from "./chart.js";
 import { renderLegend, renderResortLegend, renderStatCard, renderInsights } from "./ui.js";
 
@@ -24,9 +24,7 @@ function update() {
   renderInsights(aggregate, state);
 }
 
-function onResortChange(which) {
-  const sel = $(which === "a" ? "resort-a" : "resort-b");
-  const name = sel.value || null;
+function onResortChange(which, name) {
   if (which === "a") state.resortA = name;
   else state.resortB = name;
   if (!name) { update(); return; }
@@ -37,12 +35,9 @@ function init() {
   loadAggregate()
     .then((data) => {
       aggregate = data;
-      fillResortSelect("resort-a", data.resort_names);
-      fillResortSelect("resort-b", data.resort_names);
+      setupResortCombobox("resort-a", data.resort_names, (name) => onResortChange("a", name));
+      setupResortCombobox("resort-b", data.resort_names, (name) => onResortChange("b", name));
       renderLegend();
-
-      $("resort-a").addEventListener("change", () => onResortChange("a"));
-      $("resort-b").addEventListener("change", () => onResortChange("b"));
 
       bindToggle(
         "metric-avg", "metric-max",

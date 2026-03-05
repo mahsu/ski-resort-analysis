@@ -127,9 +127,16 @@ body {
 .resort-dot.a { background: var(--resort-a); }
 .resort-dot.b { background: var(--resort-b); }
 
-select {
+/* ── Resort combobox ───────────────────────────────────────────────────────── */
+.resort-combobox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.resort-combobox input[type="text"] {
   min-width: 210px;
-  padding: 0.4rem 2rem 0.4rem 0.7rem;
+  padding: 0.4rem 1.8rem 0.4rem 0.7rem;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -137,22 +144,86 @@ select {
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 500;
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8fa8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.6rem center;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-select:hover {
+.resort-combobox input[type="text"]::placeholder {
+  color: var(--text-subtle);
+  font-weight: 400;
+}
+
+.resort-combobox input[type="text"]:hover {
   border-color: var(--text-subtle);
 }
 
-select:focus {
+.resort-combobox input[type="text"]:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.resort-clear {
+  position: absolute;
+  right: 0.45rem;
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  transition: color var(--transition), background var(--transition);
+}
+
+.resort-clear:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.resort-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 200;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.resort-dropdown li {
+  padding: 0.38rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resort-dropdown li:hover,
+.resort-dropdown li.active {
+  background: var(--bg-hover);
+}
+
+.resort-dropdown-empty {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+  font-style: italic;
 }
 
 .toggle-label {
@@ -520,6 +591,10 @@ select:focus {
   text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 0.2rem;
+}
+
+.tooltip .tip-resort-spaced {
+  margin-top: 0.75rem;
 }
 
 .tooltip .tip-title {
