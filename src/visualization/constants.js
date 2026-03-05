@@ -6,7 +6,7 @@ export const RESORT_COLORS = { A: "#0891b2", B: "#ea580c" };
 export const COLORS = ["green", "blue", "black", "grey", "orange"];
 
 export const COLOR_LABELS = {
-  green: "Easy",
+  green: "Beginner",
   blue: "Intermediate",
   black: "Advanced",
   grey: "Expert",

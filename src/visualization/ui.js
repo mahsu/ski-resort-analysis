@@ -102,67 +102,148 @@ function percentileRank(sortedArr, value) {
   return Math.round((count / sortedArr.length) * 100);
 }
 
+/** Max number of insight cards to show in the insights panel. */
+const MAX_INSIGHT_CARDS = 4;
+/** Min median pitch difference (percentage points) to mention in comparison insights. */
+const MIN_DIFF_PCT = 2;
+/** Percentile below which a resort is considered "low" for single-resort percentile insight. */
+const EXTREME_PERCENTILE_LO = 25;
+/** Percentile above which a resort is considered "high" for single-resort percentile insight. */
+const EXTREME_PERCENTILE_HI = 75;
+/** Min difference in (black − green) spread between two resorts to mention variety insight. */
+const MIN_VARIETY_DIFF_PCT = 5;
+
+/** Difficulty colors/labels used when picking the "most extreme" percentile for single-resort insight. */
+const PERCENTILE_COLOR_CONFIG = [
+  { color: "green", label: "Beginner" },
+  { color: "blue", label: "Intermediate" },
+  { color: "black", label: "Advanced" },
+];
+
+function getAllResortValuesForColor(aggregate, medians, key, color) {
+  return (aggregate.resort_names || [])
+    .map((n) => medians[n] && medians[n][key] && medians[n][key][color])
+    .filter((v) => v != null)
+    .sort((a, b) => a - b);
+}
+
+function addInsightCard(container, text) {
+  const card = document.createElement("div");
+  card.className = "insight-card";
+  card.textContent = text;
+  container.appendChild(card);
+}
+
 export function renderInsights(aggregate, state) {
   const container = $("insights");
   if (!container || !aggregate) return;
   container.innerHTML = "";
 
   const medians = aggregate.resort_medians_by_color || {};
+  const byDifficulty = aggregate.by_difficulty || {};
   const { resortA, resortB, metric } = state;
   const key = metric === "average_pitch" ? "average_pitch" : "max_pitch";
+  const candidates = [];
+  const push = (text) => {
+    if (text) candidates.push(text);
+  };
 
-  function addInsight(text) {
-    const card = document.createElement("div");
-    card.className = "insight-card";
-    card.textContent = text;
-    container.appendChild(card);
+  // 0 resorts: fallback only
+  if (!resortA && !resortB) {
+    addInsightCard(container, "Select one or two resorts to see comparative insights.");
+    return;
   }
 
-  if (resortA && medians[resortA]) {
-    const m = medians[resortA][key];
-    if (m && m.blue != null) {
-      const allBlue = aggregate.resort_names
-        .map((n) => medians[n] && medians[n][key] && medians[n][key].blue)
-        .filter((v) => v != null)
-        .sort((a, b) => a - b);
-      const rank = percentileRank(allBlue, m.blue);
-      if (rank != null) {
-        addInsight(
-          `Intermediate (blue) runs at ${resortA} are steeper than ${rank}% of US resorts (median ${m.blue.toFixed(1)}% pitch).`
-        );
+  if (resortA && resortB) {
+    // 2 resorts: comparison insights only (combined comparison, then variety)
+    const mA = medians[resortA] && medians[resortA][key];
+    const mB = medians[resortB] && medians[resortB][key];
+    if (mA && mB) {
+      const blueDiff = mA.blue != null && mB.blue != null ? mB.blue - mA.blue : null;
+      const blackDiff = mA.black != null && mB.black != null ? mB.black - mA.black : null;
+      const blueAbs = blueDiff != null ? Math.abs(blueDiff) : 0;
+      const blackAbs = blackDiff != null ? Math.abs(blackDiff) : 0;
+      if ((blueAbs >= MIN_DIFF_PCT || blackAbs >= MIN_DIFF_PCT) && (blueDiff != null || blackDiff != null)) {
+        const steeperBlue = blueDiff != null && blueAbs >= MIN_DIFF_PCT ? (mA.blue > mB.blue ? resortA : resortB) : null;
+        const steeperBlack = blackDiff != null && blackAbs >= MIN_DIFF_PCT ? (mA.black > mB.black ? resortA : resortB) : null;
+        if (steeperBlue && steeperBlack && steeperBlue === steeperBlack) {
+          push(`${steeperBlue} has steeper intermediate and advanced runs (${blueAbs.toFixed(1)}% and ${blackAbs.toFixed(1)}% median pitch difference).`);
+        } else {
+          const parts = [];
+          if (steeperBlue) parts.push(`${steeperBlue} has steeper intermediate runs (${blueAbs.toFixed(1)}% median pitch difference)`);
+          if (steeperBlack) parts.push(`${steeperBlack} has steeper advanced runs (${blackAbs.toFixed(1)}% median pitch difference)`);
+          if (parts.length) push(parts.join("; ") + ".");
+        }
+      }
+      // Variety: compare (black - green) spread
+      const spreadA = mA.black != null && mA.green != null ? mA.black - mA.green : null;
+      const spreadB = mB.black != null && mB.green != null ? mB.black - mB.green : null;
+      if (spreadA != null && spreadB != null) {
+        const varietyDiff = Math.abs(spreadA - spreadB);
+        if (varietyDiff >= MIN_VARIETY_DIFF_PCT) {
+          const wider = spreadA > spreadB ? resortA : resortB;
+          push(`${wider} has a wider difficulty range from beginner to advanced (${varietyDiff.toFixed(1)}% median pitch difference).`);
+        }
       }
     }
-  }
+  } else {
+    // 1 resort: single-resort insights only (one percentile, spread, distribution band)
+    const resort = resortA || resortB;
+    const m = medians[resort] && medians[resort][key];
+    if (!m) {
+      addInsightCard(container, "Select one or two resorts to see comparative insights.");
+      return;
+    }
 
-  if (resortB && medians[resortB]) {
-    const m = medians[resortB][key];
-    if (m && m.black != null) {
-      const allBlack = aggregate.resort_names
-        .map((n) => medians[n] && medians[n][key] && medians[n][key].black)
-        .filter((v) => v != null)
-        .sort((a, b) => a - b);
-      const rank = percentileRank(allBlack, m.black);
-      if (rank != null) {
-        addInsight(
-          `Advanced (black) runs at ${resortB} are steeper than ${rank}% of US resorts (median ${m.black.toFixed(1)}% pitch).`
-        );
+    // One percentile: pick color with most extreme rank (only add if rank < 25 or > 75)
+    let bestRank = null;
+    let bestColorConfig = null;
+    let bestMedian = null;
+    for (const { color, label } of PERCENTILE_COLOR_CONFIG) {
+      const val = m[color];
+      if (val == null) continue;
+      const all = getAllResortValuesForColor(aggregate, medians, key, color);
+      const rank = percentileRank(all, val);
+      if (rank != null && (bestRank == null || Math.abs(rank - 50) > Math.abs(bestRank - 50))) {
+        bestRank = rank;
+        bestColorConfig = label;
+        bestMedian = val;
       }
     }
-  }
-
-  if (resortA && resortB && medians[resortA] && medians[resortB]) {
-    const mA = medians[resortA][key];
-    const mB = medians[resortB][key];
-    if (mA && mB && mA.blue != null && mB.blue != null) {
-      const diff = (mB.blue - mA.blue).toFixed(1);
-      const steeper = mA.blue > mB.blue ? resortA : resortB;
-      addInsight(
-        `${steeper} has steeper intermediate runs; blue median differs by ${Math.abs(diff)}% pitch.`
+    if (bestRank != null && bestColorConfig != null && (bestRank < EXTREME_PERCENTILE_LO || bestRank > EXTREME_PERCENTILE_HI)) {
+      push(
+        `${bestColorConfig} runs at ${resort} are steeper than ${bestRank}% of tracked resorts (median ${bestMedian.toFixed(1)}% pitch).`
       );
     }
+
+    // Same-resort spread: black - green
+    if (m.black != null && m.green != null) {
+      const spread = (m.black - m.green).toFixed(1);
+      push(`At ${resort}, advanced runs have a ${spread}% higher median pitch than beginner runs.`);
+    }
+
+    // Distribution band (where resort sits vs by_difficulty across tracked resorts)
+    const bandColors = ["blue", "black"];
+    for (const bandColor of bandColors) {
+      const resortMedian = m[bandColor];
+      const percentiles = byDifficulty[key] && byDifficulty[key][bandColor];
+      if (resortMedian == null || !percentiles || percentiles.p25 == null) continue;
+      const p25 = percentiles.p25;
+      const p50 = percentiles.p50;
+      const p75 = percentiles.p75;
+      let band = null;
+      if (resortMedian <= p25) band = "below the 25th percentile across tracked resorts";
+      else if (resortMedian >= p75) band = "above the 75th percentile across tracked resorts";
+      else if (Math.abs(resortMedian - p50) <= 3) band = "near the median across tracked resorts";
+      if (band) {
+        push(
+          `At ${resort}, ${COLOR_LABELS[bandColor].toLowerCase()} runs (median ${resortMedian.toFixed(1)}% pitch) are ${band}.`
+        );
+        break;
+      }
+    }
   }
 
-  if (!container.children.length) {
-    addInsight("Select one or two resorts to see comparative insights.");
-  }
+  const toShow = candidates.length ? candidates.slice(0, MAX_INSIGHT_CARDS) : ["Select one or two resorts to see comparative insights."];
+  toShow.forEach((text) => addInsightCard(container, text));
 }
