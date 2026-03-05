@@ -26,6 +26,13 @@ def pct(v: float | None) -> float | None:
     return round(v * 100, 2)
 
 
+def run_steepness(r: dict) -> float:
+    """Length-weighted pitch intensity for one run: 60% avg + 40% max pitch."""
+    avg = r.get("average_pitch_%") or 0
+    max_p = r.get("max_pitch_%") or 0
+    return 0.6 * avg + 0.4 * max_p
+
+
 def main() -> None:
     resorts_dir = Path(__file__).resolve().parents[2] / "data" / "resorts"
     if not resorts_dir.exists():
@@ -37,6 +44,7 @@ def main() -> None:
     hist_avg: dict[tuple[float, float], int] = {}
     hist_max: dict[tuple[float, float], int] = {}
     resort_medians: dict[str, dict] = {}
+    resort_steepness_raw: dict[str, float] = {}
 
     for path in sorted(resorts_dir.glob("*.json")):
         resort_name = path.stem
@@ -52,6 +60,8 @@ def main() -> None:
 
         resort_avg_by_color: dict[str, list[float]] = {c: [] for c in COLORS}
         resort_max_by_color: dict[str, list[float]] = {c: [] for c in COLORS}
+        steepness_weighted_sum = 0.0
+        steepness_total_weight = 0.0
 
         for r in runs:
             if not isinstance(r, dict):
@@ -76,6 +86,15 @@ def main() -> None:
                 bin_hi = bin_lo + BIN_WIDTH
                 hist_max[(bin_lo, bin_hi)] = hist_max.get((bin_lo, bin_hi), 0) + 1
 
+            if avg is not None and isinstance(avg, (int, float)) and max_p is not None and isinstance(max_p, (int, float)):
+                weight = r.get("inclined_length_m") or 0
+                steepness_weighted_sum += run_steepness(r) * weight
+                steepness_total_weight += weight
+
+        resort_steepness_raw[resort_name] = (
+            steepness_weighted_sum / steepness_total_weight if steepness_total_weight else 0.0
+        )
+
         def median(xs: list[float]) -> float | None:
             if not xs:
                 return None
@@ -87,6 +106,17 @@ def main() -> None:
             "average_pitch": {c: median(resort_avg_by_color[c]) for c in COLORS},
             "max_pitch": {c: median(resort_max_by_color[c]) for c in COLORS},
         }
+
+    def percentile_rank(all_scores: list[float], score: float) -> float:
+        below = sum(1 for s in all_scores if s < score)
+        equal = sum(1 for s in all_scores if s == score)
+        return round((below + 0.5 * equal) / len(all_scores) * 100, 1)
+
+    all_raw = list(resort_steepness_raw.values())
+    resort_steepness = {
+        name: percentile_rank(all_raw, raw)
+        for name, raw in resort_steepness_raw.items()
+    }
 
     def percentiles(xs: list[float], ps: tuple[float, ...]) -> dict[str, float]:
         if not xs:
@@ -134,6 +164,7 @@ def main() -> None:
             "max_pitch": hist_to_list(hist_max_filled),
         },
         "resort_medians_by_color": resort_medians,
+        "resort_steepness": resort_steepness,
         "total_runs": len(all_runs),
     }
 

@@ -19,8 +19,8 @@ const $ = (id) => document.getElementById(id);
 function update() {
   drawChart(aggregate, resortCache, state);
   renderResortLegend(state);
-  renderStatCard("stats-a", state.resortA, state.resortA ? resortCache[state.resortA] : null, state);
-  renderStatCard("stats-b", state.resortB, state.resortB ? resortCache[state.resortB] : null, state);
+  renderStatCard("stats-a", state.resortA, state.resortA ? resortCache[state.resortA] : null, state, aggregate);
+  renderStatCard("stats-b", state.resortB, state.resortB ? resortCache[state.resortB] : null, state, aggregate);
   renderInsights(aggregate, state);
 }
 
