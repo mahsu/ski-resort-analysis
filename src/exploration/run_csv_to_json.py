@@ -127,9 +127,7 @@ def main() -> None:
     # Malformed run filters
     avg_pitch = pd.to_numeric(df["average_pitch_%"], errors="coerce")
     max_pitch = pd.to_numeric(df["max_pitch_%"], errors="coerce")
-    df = df.loc[
-        avg_pitch.notna() & max_pitch.notna() & (avg_pitch <= 1) & (max_pitch <= 1)
-    ]
+    df = df.loc[avg_pitch.notna() & max_pitch.notna()]
     df = df.loc[df["name"].notna() & (df["name"].astype(str).str.strip() != "")]
     difficulty = df["difficulty"].fillna("").astype(str).str.strip().str.lower()
     df = df.loc[(difficulty != "freeride") & (difficulty != "")]

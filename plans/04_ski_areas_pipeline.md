@@ -47,7 +47,7 @@
 
 - Drop runs where `average_pitch_%` or `max_pitch_%` is missing or non-numeric.
 - Drop runs where `name` is empty or whitespace-only.
-- Drop runs where `average_pitch_%` or `max_pitch_%` is greater than 1 (pitch is stored as ratio 0–1).
+- **Include** runs where `average_pitch_%` or `max_pitch_%` is greater than 1 (do not drop them; pitch may be stored as ratio > 1 or as percentage).
 - Drop runs where `difficulty` is `freeride`.
 
 ---
