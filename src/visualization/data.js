@@ -176,4 +176,6 @@ export function setupResortCombobox(inputId, resortNames, onChange) {
   });
 
   clearBtn.addEventListener("click", clearResort);
+
+  return { select: selectResort };
 }
