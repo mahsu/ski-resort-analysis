@@ -386,15 +386,24 @@ export function drawChart(aggregate, resortCache, state) {
   }
 
   if (state.chartMode === "lines") {
-    if (dataA) drawResortArea(dataA.bins, totalA, "A");
-    if (dataB) drawResortArea(dataB.bins, totalB, "B");
-    if (hasResortData) drawBinTooltipOverlays();
+    if (!hasResortData) {
+      g.append("text")
+        .attr("x", innerWidth / 2).attr("y", innerHeight / 2)
+        .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+        .attr("fill", "#94a3b8").attr("font-size", "14px")
+        .text("Select a resort above");
+    } else {
+      if (dataA) drawResortArea(dataA.bins, totalA, "A");
+      if (dataB) drawResortArea(dataB.bins, totalB, "B");
+      drawBinTooltipOverlays();
+    }
   } else {
     if (dataA) drawStackedBars(dataA.bins, totalA, 1, "A");
     if (dataB) drawStackedBars(dataB.bins, totalB, 0.55, "B");
   }
 
-  if (state.showAggregate && aggBins.length) {
+  // In lines mode show aggregate only when at least one resort is selected.
+  if (state.showAggregate && aggBins.length && (state.chartMode !== "lines" || hasResortData)) {
     const totalForScale = Math.max(totalA || 0, totalB || 0);
     const aggNormalize = state.normalizeY && aggregate.total_runs
       ? (100 / aggregate.total_runs)
