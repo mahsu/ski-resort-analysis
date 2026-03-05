@@ -319,11 +319,18 @@ body {
 /* ── Layout ────────────────────────────────────────────────────────────────── */
 .main {
   display: grid;
-  grid-template-columns: 1fr 580px;
+  grid-template-columns: 280px 1fr 320px;
   gap: 1.25rem;
   padding: 1.25rem 2rem;
   max-width: 1600px;
   margin: 0 auto;
+}
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
 }
 
 /* ── Chart ─────────────────────────────────────────────────────────────────── */
@@ -344,19 +351,14 @@ body {
 
 /* ── Sidebar ───────────────────────────────────────────────────────────────── */
 .sidebar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.sidebar-left,
-.sidebar-right {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  align-items: stretch;
+  min-width: 0;
 }
 
+.stats-panel section,
 .sidebar section {
   background: var(--bg-panel);
   border: 1px solid var(--border);
@@ -365,6 +367,7 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.stats-panel h2,
 .sidebar h2 {
   margin: 0 0 0.7rem 0;
   font-size: 0.7rem;
@@ -377,6 +380,7 @@ body {
   gap: 0.4rem;
 }
 
+.stats-panel h2::after,
 .sidebar h2::after {
   content: '';
   flex: 1;
@@ -408,6 +412,9 @@ body {
   flex-shrink: 0;
 }
 
+#resort-legend-wrap {
+  margin-bottom: 16px;
+}
 .resort-legend-item {
   flex-basis: 100%;
   font-size: 0.78rem;
