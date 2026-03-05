@@ -168,6 +168,10 @@ export function drawChart(aggregate, resortCache, state) {
       { data: dataB, total: totalB, key: "B", name: state.resortB || "Resort B", offsetY: margin.top + SUB_H + SUB_GAP },
     ];
 
+    const aggRawMax = d3.max(aggBins, (d) => d.count) || 1;
+    const aggIndepScale = d3.scaleLinear().domain([0, aggRawMax]).range([SUB_H, 0]);
+    const aggNormFactor = aggregate.total_runs ? 100 / aggregate.total_runs : 1;
+
     panels.forEach(({ data, total, key, name, offsetY }, idx) => {
       const isBottom = idx === panels.length - 1;
       const pg = svg.append("g").attr("transform", `translate(${margin.left},${offsetY})`);
@@ -241,9 +245,6 @@ export function drawChart(aggregate, resortCache, state) {
       }
 
       if (data && state.showAggregate && aggBins.length) {
-        const aggNorm = state.normalizeY && aggregate.total_runs
-          ? 100 / aggregate.total_runs
-          : (total && aggregate.total_runs ? total / aggregate.total_runs : 1);
         const pathData = aggBins.filter((d) => d.count > 0);
         if (pathData.length) {
           pg.append("path").datum(pathData)
@@ -251,7 +252,9 @@ export function drawChart(aggregate, resortCache, state) {
             .attr("stroke-width", 2).attr("stroke-dasharray", "6,4")
             .attr("d", d3.line()
               .x((d) => xScale((d.bin_start + d.bin_end) / 2))
-              .y((d) => panelYScale(d.count * aggNorm)));
+              .y(state.normalizeY
+                ? (d) => panelYScale(d.count * aggNormFactor)
+                : (d) => aggIndepScale(d.count)));
         }
       }
     });
