@@ -51,7 +51,7 @@ function pctRunsAbove(runs, metric, thresholdPct) {
   return Math.round((above / withPitch.length) * 100);
 }
 
-export function renderStatCard(elId, resortName, runs, state) {
+export function renderStatCard(elId, resortName, runs, state, aggregate) {
   const el = $(elId);
   if (!el) return;
   const badge = elId === "stats-a" ? "a" : "b";
@@ -80,12 +80,27 @@ export function renderStatCard(elId, resortName, runs, state) {
     `<span class="stat-diff-count">${byColor[c] || 0}</span>` +
     `</div>`
   ).join("");
+
+  const steepnessScore = aggregate && aggregate.resort_steepness && resortName
+    ? aggregate.resort_steepness[resortName]
+    : null;
+  const steepnessHtml = steepnessScore != null
+    ? `<div class="stat-row steepness-row">` +
+      `<span class="stat-label">Steepness index</span>` +
+      `<span class="stat-value steepness-score">${steepnessScore}<span class="steepness-denom"> / 100</span></span>` +
+      `</div>` +
+      `<div class="steepness-track">` +
+      `<div class="steepness-fill" style="width:${steepnessScore}%"></div>` +
+      `</div>`
+    : "";
+
   el.innerHTML =
     `<div class="stat-card-header">` +
     `<span class="stat-card-name">${resortName}</span>` +
     `<span class="stat-card-badge ${badge}">${label}</span>` +
     `</div>` +
     `<div class="stat-card-body">` +
+    steepnessHtml +
     `<div class="stat-row"><span class="stat-label">${metricLabel}</span><span class="stat-value">${med != null ? med.toFixed(1) + "%" : "—"}</span></div>` +
     `<div class="stat-row"><span class="stat-label">Runs ≥ 40% pitch</span><span class="stat-value">${pct40 != null ? pct40 + "%" : "—"}</span></div>` +
     `<div class="stat-row"><span class="stat-label">By difficulty</span></div>` +
@@ -244,6 +259,9 @@ export function renderInsights(aggregate, state) {
     }
   }
 
-  const toShow = candidates.length ? candidates.slice(0, MAX_INSIGHT_CARDS) : ["Select one or two resorts to see comparative insights."];
+  const fallbackMessage = (resortA || resortB)
+    ? "No standout comparative insights for this pair with the current metric."
+    : "Select one or two resorts to see comparative insights.";
+  const toShow = candidates.length ? candidates.slice(0, MAX_INSIGHT_CARDS) : [fallbackMessage];
   toShow.forEach((text) => addInsightCard(container, text));
 }
