@@ -19,6 +19,25 @@ OUTPUT_DIR = Path("data/resorts")
 INVALID_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
 NA_COUNTRIES = ("United States", "Canada", "Mexico")
 
+# Columns to omit from output JSON (still used for filtering/grouping where needed)
+COLUMNS_TO_STRIP = {
+    "ref",
+    "localities",
+    "ski_area_names",
+    "oneway",
+    "lit",
+    "patrolled",
+    "uses",
+    "wikidata_id",
+    "websites",
+    "id",
+    "lat",
+    "lng",
+    "ski_area_ids",
+    "sources",
+    "description",
+}
+
 
 def load_allowed_ski_area_ids(ski_areas_path: Path) -> set[str]:
     """Load set of ski area id values from filtered ski_areas CSV."""
@@ -113,7 +132,7 @@ def main() -> None:
     ]
     df = df.loc[df["name"].notna() & (df["name"].astype(str).str.strip() != "")]
     difficulty = df["difficulty"].fillna("").astype(str).str.strip().str.lower()
-    df = df.loc[difficulty != "freeride"]
+    df = df.loc[(difficulty != "freeride") & (difficulty != "")]
 
     # Drop geometry column
     if "geometry" in df.columns:
@@ -130,7 +149,8 @@ def main() -> None:
         resort_name = resort_name.strip()
         filename = sanitize_filename(resort_name) + ".json"
         out_path = args.output_dir / filename
-        records = records_for_json(group)
+        out_cols = [c for c in group.columns if c not in COLUMNS_TO_STRIP]
+        records = records_for_json(group[out_cols])
         with open(out_path, "w") as f:
             json.dump(records, f, indent=2)
         written += 1
