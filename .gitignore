@@ -13,9 +13,13 @@ build/
 *.log
 
 *.json
+!package.json
+!package-lock.json
 *.geojson
 *.csv
 *.gpkg*
 *.log
 
 .DS_Store
+node_modules/
+dist/

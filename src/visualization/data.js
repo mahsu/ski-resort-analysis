@@ -1,6 +1,5 @@
 import { BIN_WIDTH, MAX_PITCH, COLORS, PITCH_FIELDS } from "./constants.js";
-
-const DATA_BASE = "../../data/";
+import { DATA_BASE } from "./config.js";
 
 export function pitchToPct(run, metric) {
   const key = PITCH_FIELDS[metric];

@@ -35,9 +35,10 @@ D3.js single-page app that compares run steepness (pitch) between two ski resort
 **Stats** — For each selected resort: median pitch, % of runs ≥ 40% pitch, and run counts by difficulty level.
 
 **Insights** — Up to 4 auto-generated cards contextual to the current selection:
-- *1 resort:* percentile rank vs all tracked resorts (most extreme difficulty level), beginner-to-advanced pitch spread, and national distribution band (vs p25/p50/p75).
-- *2 resorts:* combined intermediate/advanced steepness comparison and difficulty-range variety comparison.
-- *0 resorts:* fallback prompt.
+
+- _1 resort:_ percentile rank vs all tracked resorts (most extreme difficulty level), beginner-to-advanced pitch spread, and national distribution band (vs p25/p50/p75).
+- _2 resorts:_ combined intermediate/advanced steepness comparison and difficulty-range variety comparison.
+- _0 resorts:_ fallback prompt.
 
 ## Regenerate aggregate stats
 
@@ -51,14 +52,29 @@ This overwrites `data/aggregate_stats.json`. Reload the visualization page to us
 
 ## Files
 
-| File            | Purpose                                                        |
-|-----------------|----------------------------------------------------------------|
-| `index.html`    | Page structure, controls, chart container, sidebar             |
-| `style.css`     | Dark theme, difficulty colors, layout                          |
-| `app.js`        | App init, state management, URL param sync, event wiring       |
-| `chart.js`      | D3 histogram and smooth-lines chart, tooltips                  |
-| `data.js`       | Data loading, pitch binning, resort combobox setup             |
-| `ui.js`         | Legend, stat cards, insights panel rendering                   |
-| `constants.js`  | Shared constants: bin width, pitch range, colors, labels       |
+| File           | Purpose                                                                  |
+| -------------- | ------------------------------------------------------------------------ |
+| `index.html`   | Page structure, controls, chart container, sidebar                       |
+| `style.css`    | Dark theme, difficulty colors, layout                                    |
+| `app.js`       | App init, state management, URL param sync, event wiring                 |
+| `chart.js`     | D3 histogram and smooth-lines chart, tooltips                            |
+| `data.js`      | Data loading, pitch binning, resort combobox setup                       |
+| `ui.js`        | Legend, stat cards, insights panel rendering                             |
+| `constants.js` | Shared constants: bin width, pitch range, colors, labels                 |
+| `config.js`    | Data base path for fetch (dev: `../../data/`; build overwrites for dist) |
 
 Data is loaded from the repo `data/` directory using paths relative to the page URL, so the app must be served from the repo root (as in the steps above).
+
+g## Deploy / dist build
+
+To build a minified bundle for deployment (e.g. to a subfolder on another site):
+
+1. From the repository root, run:
+
+   ```bash
+   npm run build:viz
+   ```
+
+2. Copy the **contents** of `dist/` (not the `dist` folder itself) into your target subfolder (e.g. `ski/`). You should get `index.html`, `style.css`, `app.js`, and `data/` at the root of that subfolder.
+
+3. The built app uses `DATA_BASE = "data/"` so fetch paths resolve correctly when served from the subfolder. No server config is required beyond serving static files.
