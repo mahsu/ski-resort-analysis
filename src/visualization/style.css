@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg: #080e1a;
-  --bg-panel: #111827;
-  --bg-elevated: #1a2535;
-  --bg-hover: #1f2f45;
-  --text: #f1f5f9;
-  --text-muted: #7a8fa8;
-  --text-subtle: #4a6178;
-  --border: #1e2e42;
-  --border-subtle: #162030;
-  --green: #22c55e;
-  --blue: #3b82f6;
-  --black: #0f172a;
+  --bg: #c9d6e3;
+  --bg-panel: #dde6f0;
+  --bg-elevated: #d4dfe9;
+  --bg-hover: #c2cfdc;
+  --text: #0f172a;
+  --text-muted: #3d526a;
+  --text-subtle: #7a93aa;
+  --border: #b8c8d8;
+  --border-subtle: #cad5e0;
+  --green: #16a34a;
+  --blue: #2563eb;
+  --black: #1e293b;
   --grey: #64748b;
-  --orange: #f97316;
-  --accent: #38bdf8;
-  --accent-dim: rgba(56, 189, 248, 0.12);
-  --aggregate: #4a6178;
-  --resort-a: #22d3ee;
-  --resort-b: #fb923c;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4);
+  --orange: #ea580c;
+  --accent: #0284c7;
+  --accent-dim: rgba(2, 132, 199, 0.1);
+  --aggregate: #94a3b8;
+  --resort-a: #0891b2;
+  --resort-b: #ea580c;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.07);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -52,7 +52,7 @@ body {
 .header {
   padding: 1.25rem 2rem;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(14,24,42,0.95) 0%, rgba(8,14,26,0.95) 100%);
+  background: linear-gradient(180deg, rgba(221,230,240,0.97) 0%, rgba(210,222,233,0.97) 100%);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -76,7 +76,7 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  background: linear-gradient(90deg, #f1f5f9 0%, #94c4e8 100%);
+  background: linear-gradient(90deg, #0f172a 0%, #0284c7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -186,7 +186,7 @@ select:focus {
 
 .toggle-btn:hover:not(.active) {
   color: var(--text);
-  background: rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.05);
 }
 
 .toggle-btn.active {
@@ -230,7 +230,7 @@ select:focus {
 /* ── Chart ─────────────────────────────────────────────────────────────────── */
 .chart-wrap {
   position: relative;
-  min-height: 420px;
+  min-height: 540px;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -396,12 +396,12 @@ select:focus {
 }
 
 .stat-card-badge.a {
-  background: rgba(34, 211, 238, 0.15);
+  background: rgba(8, 145, 178, 0.12);
   color: var(--resort-a);
 }
 
 .stat-card-badge.b {
-  background: rgba(251, 146, 60, 0.15);
+  background: rgba(234, 88, 12, 0.12);
   color: var(--resort-b);
 }
 
@@ -559,7 +559,7 @@ select:focus {
 .panel-resort-label {
   fill: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.01em;
 }

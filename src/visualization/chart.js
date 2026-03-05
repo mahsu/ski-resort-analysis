@@ -136,10 +136,10 @@ export function drawChart(aggregate, resortCache, state) {
   d3.select(chartEl).selectAll("*").remove();
 
   const width = Math.max(chartEl.getBoundingClientRect().width || 0, chartEl.offsetWidth || 600);
-  const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+  const margin = { top: 40, right: 20, bottom: 50, left: 50 };
   const innerWidth = width - margin.left - margin.right;
 
-  const SUB_H = 165, SUB_GAP = 144, SUB_TITLE_OFFSET = -12;
+  const SUB_H = 165, SUB_GAP = 80, SUB_TITLE_OFFSET = -20;
   const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : 420;
   const innerHeight = useSmallMultiples ? SUB_H : 420 - margin.top - margin.bottom;
 
