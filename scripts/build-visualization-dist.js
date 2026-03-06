@@ -17,20 +17,33 @@ const DIST = path.join(ROOT, "dist");
 const DEPLOY_CONFIG_PATH = path.join(ROOT, "config", "deploy.json");
 
 /**
- * Load GA measurement ID: from env GA_MEASUREMENT_ID, or config/deploy.json (optional).
- * config/deploy.json is gitignored; copy config/deploy.example.json and set gaMeasurementId.
+ * Load deploy config from config/deploy.json (optional). config/deploy.json is gitignored.
  */
+async function loadDeployConfig() {
+  try {
+    const raw = await fs.readFile(DEPLOY_CONFIG_PATH, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+/** GA measurement ID: from env GA_MEASUREMENT_ID, or deploy config. */
 async function loadGaMeasurementId() {
   const fromEnv = process.env.GA_MEASUREMENT_ID;
   if (fromEnv && fromEnv.trim()) return fromEnv.trim();
-  try {
-    const raw = await fs.readFile(DEPLOY_CONFIG_PATH, "utf8");
-    const config = JSON.parse(raw);
-    const id = config.gaMeasurementId;
-    return typeof id === "string" && id.trim() ? id.trim() : "";
-  } catch {
-    return "";
-  }
+  const config = await loadDeployConfig();
+  const id = config.gaMeasurementId;
+  return typeof id === "string" && id.trim() ? id.trim() : "";
+}
+
+/** Site URL for og:url: from env SITE_URL, or deploy config. */
+async function loadSiteUrl() {
+  const fromEnv = process.env.SITE_URL;
+  if (fromEnv && fromEnv.trim()) return fromEnv.trim();
+  const config = await loadDeployConfig();
+  const url = config.siteUrl;
+  return typeof url === "string" && url.trim() ? url.trim() : "";
 }
 
 function gaSnippet(measurementId) {
@@ -108,11 +121,16 @@ async function main() {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 
-  // 4. HTML: inject GA if configured, then minify (minify package expects a path, so use temp file)
+  // 4. HTML: inject GA and og:url if configured, then minify (minify package expects a path, so use temp file)
   let html = await fs.readFile(path.join(VIZ, "index.html"), "utf8");
   const gaId = await loadGaMeasurementId();
   const gaBlock = gaId ? gaSnippet(gaId) : "";
   html = html.replace("<!-- INJECT_GA -->", gaBlock);
+  const siteUrl = await loadSiteUrl();
+  const ogUrlMeta = siteUrl
+    ? `  <meta property="og:url" content="${siteUrl}">\n  `
+    : "";
+  html = html.replace("<!-- INJECT_OG_URL -->", ogUrlMeta);
   const htmlTempPath = path.join(os.tmpdir(), `viz-build-html-${Date.now()}.html`);
   try {
     await fs.writeFile(htmlTempPath, html, "utf8");
@@ -125,6 +143,8 @@ async function main() {
   console.log("Built dist/ (minified index.html, style.css, app.js, data/)");
   if (gaId) console.log("  GA: injected", gaId);
   else console.log("  GA: none (set config/deploy.json gaMeasurementId or GA_MEASUREMENT_ID)");
+  if (siteUrl) console.log("  og:url:", siteUrl);
+  else console.log("  og:url: none (set config/deploy.json siteUrl or SITE_URL)");
 }
 
 main().catch((err) => {

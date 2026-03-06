@@ -791,10 +791,6 @@ body {
     padding: var(--space-sm) var(--space-md);
   }
 
-  .header-description {
-    display: none;
-  }
-
   /* Two-column grid (label | input) so each resort stays on its own row */
   .controls > .control-row:first-child {
     display: grid;
