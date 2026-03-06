@@ -18,15 +18,36 @@
   --accent: #0284c7;
   --accent-dim: rgba(2, 132, 199, 0.1);
   --aggregate: #94a3b8;
-  --resort-a: #0891b2;
-  --resort-b: #ea580c;
+  --resort-a: #4f46e5;
+  --resort-b: #db2777;
+  --resort-a-dim: rgba(79, 70, 229, 0.12);
+  --resort-b-dim: rgba(219, 39, 119, 0.12);
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.07);
+  --radius-xs: 3px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --transition: 150ms ease;
+  /* Design system tokens */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-xl: 22px;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --z-header: 20;
+  --z-tooltip: 100;
+  --z-dropdown: 200;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -35,7 +56,7 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -47,8 +68,8 @@ body {
 /* ── Attribution footer ─────────────────────────────────────────────────────── */
 .attribution {
   margin-top: auto;
-  padding: 0.65rem 2rem;
-  font-size: 0.72rem;
+  padding: var(--space-sm) var(--space-xl);
+  font-size: var(--text-sm);
   color: var(--text-subtle);
   border-top: none;
 }
@@ -64,47 +85,47 @@ body {
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: var(--space-sm); height: var(--space-sm); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
 
 /* ── Header ────────────────────────────────────────────────────────────────── */
 .header {
-  padding: 1.25rem 2rem;
+  padding: var(--space-lg) var(--space-xl);
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(221,230,240,0.97) 0%, rgba(210,222,233,0.97) 100%);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(var(--space-sm));
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--z-header);
 }
 
 .header-top {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.1rem;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
 .header-icon {
-  font-size: 1.4rem;
+  font-size: var(--text-xl);
   line-height: 1;
 }
 
 .header-description {
-  margin: -0.5rem 0 1rem;
-  font-size: 0.7rem;
+  margin: -0.5rem 0 var(--space-md) 0;
+  font-size: var(--text-sm);
   color: var(--text-muted);
   line-height: 1.5;
 }
 
 .header h1 {
   margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
-  background: linear-gradient(90deg, #0f172a 0%, #0284c7 100%);
+  background: linear-gradient(90deg, var(--text) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -114,40 +135,40 @@ body {
 .controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem 1.5rem;
+  gap: var(--space-sm) var(--space-lg);
   align-items: center;
 }
 
 .control-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .control-row label:first-child {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   letter-spacing: 0.02em;
 }
 
 .control-row.checkboxes {
-  gap: 1.25rem;
+  gap: var(--space-lg);
 }
 
 /* Resort select labels */
 .resort-select-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  gap: var(--space-xxs);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   color: var(--text-muted);
 }
 
 .resort-dot {
-  width: 8px;
-  height: 8px;
+  width: var(--space-xs);
+  height: var(--space-xs);
   border-radius: 50%;
   display: inline-block;
 }
@@ -164,20 +185,20 @@ body {
 
 .resort-combobox input[type="text"] {
   min-width: 210px;
-  padding: 0.4rem 1.8rem 0.4rem 0.7rem;
+  padding: var(--space-xs) var(--space-xl) var(--space-xs) var(--space-sm);
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .resort-combobox input[type="text"]::placeholder {
   color: var(--text-subtle);
-  font-weight: 400;
+  font-weight: var(--weight-normal);
 }
 
 .resort-combobox input[type="text"]:hover {
@@ -197,15 +218,15 @@ body {
   border: none;
   color: var(--text-subtle);
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: var(--text-sm);
   line-height: 1;
-  padding: 0.2rem;
+  padding: var(--space-xxs);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
+  width: var(--space-md);
+  height: var(--space-md);
   transition: color var(--transition), background var(--transition);
 }
 
@@ -216,7 +237,7 @@ body {
 
 .resort-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + var(--space-xxs));
   left: 0;
   min-width: 100%;
   background: var(--bg-panel);
@@ -225,16 +246,16 @@ body {
   box-shadow: var(--shadow-md);
   list-style: none;
   margin: 0;
-  padding: 4px 0;
-  z-index: 200;
+  padding: var(--space-xxs) 0;
+  z-index: var(--z-dropdown);
   max-height: 260px;
   overflow-y: auto;
 }
 
 .resort-dropdown li {
-  padding: 0.38rem 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--text);
   cursor: pointer;
   white-space: nowrap;
@@ -248,16 +269,16 @@ body {
 }
 
 .resort-dropdown-empty {
-  padding: 0.4rem 0.7rem;
-  font-size: 0.78rem;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-sm);
   color: var(--text-subtle);
   font-style: italic;
 }
 
 .toggle-label {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
 }
 
 .toggle {
@@ -270,14 +291,14 @@ body {
 }
 
 .toggle-btn {
-  padding: 0.3rem 0.85rem;
+  padding: var(--space-xxs) var(--space-sm);
   background: transparent;
   border: none;
   border-radius: 99px;
   color: var(--text-muted);
   font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   cursor: pointer;
   transition: color var(--transition), background var(--transition);
   white-space: nowrap;
@@ -297,9 +318,9 @@ body {
 .checkbox {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
-  font-weight: 500;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--text-muted);
   cursor: pointer;
   transition: color var(--transition);
@@ -311,8 +332,8 @@ body {
 
 .checkbox input {
   accent-color: var(--accent);
-  width: 14px;
-  height: 14px;
+  width: var(--text-md);
+  height: var(--text-md);
   cursor: pointer;
 }
 
@@ -320,8 +341,8 @@ body {
 .main {
   display: grid;
   grid-template-columns: 280px 1fr 320px;
-  gap: 1.25rem;
-  padding: 1.25rem 2rem;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -329,7 +350,7 @@ body {
 .stats-panel {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
   min-width: 0;
 }
 
@@ -340,7 +361,7 @@ body {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  padding: var(--space-lg);
   box-shadow: var(--shadow-md);
 }
 
@@ -353,7 +374,7 @@ body {
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-md);
   align-items: stretch;
   min-width: 0;
 }
@@ -363,21 +384,21 @@ body {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: var(--space-md);
   box-shadow: var(--shadow-sm);
 }
 
 .stats-panel h2,
 .sidebar h2 {
-  margin: 0 0 0.7rem 0;
-  font-size: 0.7rem;
-  font-weight: 700;
+  margin: 0 0 var(--space-sm) 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   color: var(--text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-xxs);
 }
 
 .stats-panel h2::after,
@@ -392,36 +413,36 @@ body {
 .legend-items {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.85rem;
-  margin-bottom: 0.4rem;
+  gap: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xxs);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  font-weight: 500;
+  gap: var(--space-xxs);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--text-muted);
 }
 
 .legend-swatch {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   flex-shrink: 0;
 }
 
 #resort-legend-wrap {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 .resort-legend-item {
   flex-basis: 100%;
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
 }
 
 .resort-label-key {
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   margin-right: 0.2rem;
 }
 
@@ -431,24 +452,24 @@ body {
 }
 
 .legend-subhead {
-  font-size: 0.65rem;
-  font-weight: 400;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-normal);
   color: var(--text-subtle);
   text-transform: none;
   letter-spacing: 0;
 }
 
 .legend-note {
-  margin: 0.35rem 0 0 0;
-  font-size: 0.72rem;
+  margin: var(--space-xxs) 0 0 0;
+  font-size: var(--text-sm);
   color: var(--text-subtle);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-xxs);
 }
 
 .aggregate-note {
-  margin-top: 1rem;
+  margin-top: var(--space-md);
 }
 
 .aggregate-note::before {
@@ -463,27 +484,27 @@ body {
 /* ── Stat cards ────────────────────────────────────────────────────────────── */
 .stat-card {
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   border: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
   overflow: hidden;
 }
 
 .stat-card + .stat-card {
-  margin-top: 0.7rem;
+  margin-top: var(--space-sm);
 }
 
 .stat-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.55rem 0.75rem;
+  padding: var(--space-xs) var(--space-sm);
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .stat-card-name {
-  font-weight: 700;
-  font-size: 0.82rem;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -491,36 +512,36 @@ body {
 }
 
 .stat-card-badge {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.15rem 0.45rem;
+  padding: 2px var(--space-xs);
   border-radius: 99px;
   flex-shrink: 0;
-  margin-left: 0.5rem;
+  margin-left: var(--space-xs);
 }
 
 .stat-card-badge.a {
-  background: rgba(8, 145, 178, 0.12);
+  background: var(--resort-a-dim);
   color: var(--resort-a);
 }
 
 .stat-card-badge.b {
-  background: rgba(234, 88, 12, 0.12);
+  background: var(--resort-b-dim);
   color: var(--resort-b);
 }
 
 .stat-card-body {
-  padding: 0.30rem 0.75rem 0.50rem 0.75rem;
+  padding: var(--space-xs) var(--space-sm);
 }
 
 .stat-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
+  gap: var(--space-xs);
+  padding: var(--space-xxs) 0;
 }
 
 .stat-row + .stat-row {
@@ -529,29 +550,29 @@ body {
 
 .stat-label {
   color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
 }
 
 .stat-value {
   color: var(--text);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   text-align: right;
 }
 
 .stat-difficulty-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.3rem 0.6rem;
-  margin-top: 0.1rem;
+  gap: var(--space-xxs) var(--space-sm);
+  margin-top: var(--space-xxs);
 }
 
 .stat-diff-item {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
+  gap: var(--space-xxs);
+  font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
@@ -563,26 +584,26 @@ body {
 }
 
 .stat-diff-count {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text);
   margin-left: auto;
 }
 
 .stat-empty {
   color: var(--text-muted);
-  font-size: 0.8rem;
-  padding: 0.5rem 0;
+  font-size: var(--text-sm);
+  padding: var(--space-xs) 0;
 }
 
 /* ── Steepness index meter ─────────────────────────────────────────────────── */
 .steepness-score {
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
 }
 
 .steepness-denom {
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   color: var(--text-subtle);
 }
 
@@ -591,13 +612,13 @@ body {
   background: var(--border-subtle);
   border-radius: 99px;
   overflow: hidden;
-  margin: 1px 0 6px;
+  margin: 2px 0 var(--space-xs);
 }
 
 .steepness-fill {
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--accent) 0%, #0f172a 100%);
+  background: linear-gradient(90deg, var(--accent) 0%, var(--text) 100%);
   transition: width 0.35s ease;
 }
 
@@ -605,15 +626,15 @@ body {
 .insight-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .insight-card {
   background: var(--bg-elevated);
   border-radius: var(--radius-sm);
-  padding: 0.65rem 0.75rem 0.65rem 1rem;
-  font-size: 0.78rem;
-  font-weight: 500;
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   line-height: 1.5;
   color: var(--text-muted);
   border-left: 2px solid var(--accent);
@@ -628,16 +649,15 @@ body {
 /* ── Tooltip ───────────────────────────────────────────────────────────────── */
 .tooltip {
   position: fixed;
-  padding: 0.55rem 0.8rem;
+  padding: var(--space-xs) var(--space-sm);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.1s ease;
-  z-index: 100;
+  z-index: var(--z-tooltip);
   max-width: 260px;
   box-shadow: var(--shadow-lg);
 }
@@ -647,29 +667,29 @@ body {
 }
 
 .tooltip .tip-resort {
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 0.2rem;
+  margin-bottom: var(--space-xxs);
 }
 
 .tooltip .tip-resort-spaced {
-  margin-top: 0.75rem;
+  margin-top: var(--space-sm);
 }
 
 .tooltip .tip-title {
-  font-weight: 700;
-  font-size: 0.82rem;
-  margin-bottom: 0.3rem;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-md);
+  margin-bottom: var(--space-xxs);
   color: var(--text);
 }
 
 .tooltip .tip-row {
-  margin: 0.1rem 0;
+  margin: var(--space-xxs) 0;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 
 /* ── D3 axis ───────────────────────────────────────────────────────────────── */
@@ -680,23 +700,20 @@ body {
 
 .axis text {
   fill: var(--text-subtle);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
 }
 
 .axis-label {
   fill: var(--text-subtle);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   letter-spacing: 0.02em;
 }
 
 .panel-resort-label {
   fill: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.01em;
 }

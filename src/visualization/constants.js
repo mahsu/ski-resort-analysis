@@ -1,7 +1,7 @@
 export const BIN_WIDTH = 5;
 export const MAX_PITCH = 70;
 
-export const RESORT_COLORS = { A: "#0891b2", B: "#ea580c" };
+export const RESORT_COLORS = { A: "#4f46e5", B: "#db2777" };
 
 export const COLORS = ["green", "blue", "black", "grey", "orange"];
 
