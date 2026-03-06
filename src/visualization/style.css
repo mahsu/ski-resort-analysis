@@ -721,3 +721,198 @@ body {
   font-weight: var(--weight-bold);
   letter-spacing: 0.01em;
 }
+
+.chart.compact-chart .axis text,
+.chart.compact-chart .axis-label {
+  font-size: 11px;
+}
+
+.chart.compact-chart .panel-resort-label {
+  font-size: 12px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+/*
+ * Medium breakpoint: collapse 3-column layout to chart + sidebar,
+ * and move the stats panel below spanning full width.
+ */
+@media (max-width: 1100px) {
+  .main {
+    grid-template-columns: 1fr 260px;
+    grid-template-rows: auto auto;
+  }
+
+  .chart-wrap {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .sidebar {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .stats-panel {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  /* Lay the two stat-cards out side-by-side in the full-width row */
+  .stats-panel > section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    align-items: flex-start;
+  }
+
+  .stats-panel > section > h2 {
+    flex: 0 0 100%;
+    margin-bottom: 0;
+  }
+
+  .stats-panel .stat-card {
+    flex: 1 1 240px;
+  }
+
+  .stats-panel .stat-card + .stat-card {
+    margin-top: 0;
+  }
+}
+
+/*
+ * Mobile breakpoint: single column, reorder sections, and fix the
+ * resort-selector control row so each label+input pair is on its own line.
+ */
+@media (max-width: 700px) {
+  .header {
+    position: static;
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .header-description {
+    display: none;
+  }
+
+  /* Two-column grid (label | input) so each resort stays on its own row */
+  .controls > .control-row:first-child {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-xs);
+    row-gap: var(--space-xs);
+    width: 100%;
+  }
+
+  .resort-combobox {
+    min-width: 0;
+  }
+
+  .resort-combobox input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    padding: var(--space-sm);
+    gap: var(--space-md);
+    width: 100%;
+  }
+
+  .main > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .stats-panel,
+  .chart-wrap,
+  .sidebar {
+    grid-column: 1;
+  }
+
+  /* Stack order: stats → chart → sidebar */
+  .stats-panel {
+    grid-row: 1;
+  }
+
+  .chart-wrap {
+    grid-row: 2;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    min-height: unset;
+    padding: var(--space-xs) var(--space-sm);
+    overflow: hidden;
+  }
+
+  .chart {
+    height: 260px;
+  }
+
+  .sidebar {
+    grid-row: 3;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .sidebar > section {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Reset medium-breakpoint flex layout for stat cards */
+  .stats-panel > section {
+    display: block;
+  }
+
+  .stats-panel > section > h2 {
+    flex: unset;
+    margin-bottom: var(--space-sm);
+  }
+
+  .stats-panel .stat-card {
+    flex: unset;
+  }
+
+  .stats-panel .stat-card + .stat-card {
+    margin-top: var(--space-sm);
+  }
+
+  .stats-panel section,
+  .sidebar section {
+    width: 100%;
+    min-width: 0;
+    padding: var(--space-sm);
+  }
+
+  .stat-card-header,
+  .stat-row {
+    min-width: 0;
+  }
+
+  .stat-card-name,
+  .stat-label,
+  .stat-value,
+  .legend-item,
+  .legend-note,
+  .insight-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .stat-card-name {
+    white-space: normal;
+  }
+
+  .controls {
+    gap: var(--space-xs);
+  }
+
+  .controls > .control-row:not(:first-child) {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

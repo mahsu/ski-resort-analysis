@@ -137,15 +137,25 @@ export function drawChart(aggregate, resortCache, state) {
   d3.select(chartEl).selectAll("*").remove();
 
   const width = Math.max(chartEl.getBoundingClientRect().width || 0, chartEl.offsetWidth || 600);
-  const margin = { top: 36, right: 20, bottom: 50, left: 50 };
+  const isCompact = width < 560;
+  const isVeryCompact = width < 420;
+  const margin = isCompact
+    ? { top: 28, right: 12, bottom: 42, left: 38 }
+    : { top: 36, right: 20, bottom: 50, left: 50 };
   const innerWidth = width - margin.left - margin.right;
 
-  const CHART_HEIGHT = 340;
-  const SUB_H = 165, SUB_GAP = 80, SUB_TITLE_OFFSET = -20;
+  const CHART_HEIGHT = isVeryCompact ? 240 : isCompact ? 280 : 340;
+  const SUB_H = isVeryCompact ? 120 : isCompact ? 140 : 165;
+  const SUB_GAP = isVeryCompact ? 56 : isCompact ? 64 : 80;
+  const SUB_TITLE_OFFSET = isCompact ? -12 : -20;
+  const axisLabelYOffset = isCompact ? 30 : 38;
+  const yAxisLabelOffset = isCompact ? -30 : -42;
+  const xTickStep = isVeryCompact ? 20 : 10;
   const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : CHART_HEIGHT;
   const innerHeight = useSmallMultiples ? SUB_H : CHART_HEIGHT - margin.top - margin.bottom;
 
   chartEl.style.height = useSmallMultiples ? `${svgHeight}px` : "";
+  chartEl.classList.toggle("compact-chart", isCompact);
 
   const svg = d3.select(chartEl).append("svg")
     .attr("width", width).attr("height", svgHeight)
@@ -161,7 +171,7 @@ export function drawChart(aggregate, resortCache, state) {
   const colorScale = d3.scaleOrdinal().domain(COLORS).range(COLORS.map((c) => COLOR_HEX[c]));
 
   const sharedXAxis = d3.axisBottom(xScale)
-    .tickValues(d3.range(0, MAX_PITCH + 1, 10))
+    .tickValues(d3.range(0, MAX_PITCH + 1, xTickStep))
     .tickFormat((d) => d === MAX_PITCH ? d + "%+" : d + "%");
 
   // ── Small multiples (bars mode) ──────────────────────────────────────────
@@ -188,12 +198,12 @@ export function drawChart(aggregate, resortCache, state) {
       pg.append("g").attr("class", "axis y-axis").call(d3.axisLeft(panelYScale).ticks(4));
 
       pg.append("text").attr("class", "axis-label")
-        .attr("x", innerWidth / 2).attr("y", SUB_H + 38)
+        .attr("x", innerWidth / 2).attr("y", SUB_H + axisLabelYOffset)
         .attr("text-anchor", "middle").text("Pitch (%)");
 
       pg.append("text").attr("class", "axis-label")
         .attr("transform", "rotate(-90)")
-        .attr("x", -SUB_H / 2).attr("y", -42)
+        .attr("x", -SUB_H / 2).attr("y", yAxisLabelOffset)
         .attr("text-anchor", "middle")
         .text(state.normalizeY ? "% of runs" : "Number of runs");
 
@@ -269,12 +279,12 @@ export function drawChart(aggregate, resortCache, state) {
   g.append("g").attr("class", "axis y-axis").call(d3.axisLeft(yScale));
 
   g.append("text").attr("class", "axis-label")
-    .attr("x", innerWidth / 2).attr("y", innerHeight + 38)
+    .attr("x", innerWidth / 2).attr("y", innerHeight + axisLabelYOffset)
     .attr("text-anchor", "middle").text("Pitch (%)");
 
   g.append("text").attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
-    .attr("x", -innerHeight / 2).attr("y", -42)
+    .attr("x", -innerHeight / 2).attr("y", yAxisLabelOffset)
     .attr("text-anchor", "middle")
     .text(state.normalizeY ? "% of runs" : "Number of runs");
 

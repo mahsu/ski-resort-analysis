@@ -42,7 +42,17 @@ function onResortChange(which, name) {
   loadResort(name, resortCache).then(update).catch(() => update());
 }
 
+let resizeTimer = null;
+
+function handleResize() {
+  if (!aggregate) return;
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(() => update(), 120);
+}
+
 function init() {
+  window.addEventListener("resize", handleResize);
+
   loadAggregate()
     .then((data) => {
       aggregate = data;
