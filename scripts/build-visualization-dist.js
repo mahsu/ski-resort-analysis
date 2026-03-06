@@ -7,6 +7,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import * as os from "os";
+import { minify as minifyPkg } from "minify";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -53,19 +54,6 @@ function minifyJson(content) {
   return JSON.stringify(JSON.parse(content));
 }
 
-function minifyCss(content) {
-  return content
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function minifyHtml(content) {
-  return content
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 async function main() {
   await fs.mkdir(path.join(DIST, "data", "resorts"), { recursive: true });
 
@@ -88,9 +76,10 @@ async function main() {
     );
   }
 
-  // 2. Minify and write CSS
-  const css = await fs.readFile(path.join(VIZ, "style.css"), "utf8");
-  await fs.writeFile(path.join(DIST, "style.css"), minifyCss(css));
+  // 2. Minify and write CSS (using minify package)
+  const cssPath = path.join(VIZ, "style.css");
+  const cssMinified = await minifyPkg(cssPath);
+  await fs.writeFile(path.join(DIST, "style.css"), cssMinified);
 
   // 3. Bundle JS with dist config (temp dir)
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "viz-build-"));
@@ -119,12 +108,19 @@ async function main() {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 
-  // 4. HTML: inject GA if configured, then minify
+  // 4. HTML: inject GA if configured, then minify (minify package expects a path, so use temp file)
   let html = await fs.readFile(path.join(VIZ, "index.html"), "utf8");
   const gaId = await loadGaMeasurementId();
   const gaBlock = gaId ? gaSnippet(gaId) : "";
   html = html.replace("<!-- INJECT_GA -->", gaBlock);
-  await fs.writeFile(path.join(DIST, "index.html"), minifyHtml(html));
+  const htmlTempPath = path.join(os.tmpdir(), `viz-build-html-${Date.now()}.html`);
+  try {
+    await fs.writeFile(htmlTempPath, html, "utf8");
+    const htmlMinified = await minifyPkg(htmlTempPath);
+    await fs.writeFile(path.join(DIST, "index.html"), htmlMinified);
+  } finally {
+    await fs.rm(htmlTempPath, { force: true });
+  }
 
   console.log("Built dist/ (minified index.html, style.css, app.js, data/)");
   if (gaId) console.log("  GA: injected", gaId);

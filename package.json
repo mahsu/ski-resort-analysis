@@ -6,6 +6,7 @@
     "build:viz": "node scripts/build-visualization-dist.js"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "minify": "^15.2.0"
   }
 }
