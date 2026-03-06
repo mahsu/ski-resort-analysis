@@ -73,13 +73,19 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
     byColor[c] = runs.filter((r) => (r.color || "").toLowerCase() === c).length;
   });
   const metricLabel = metric === "average_pitch" ? "Avg pitch (median)" : "Max pitch (median)";
-  const diffItems = COLORS.map((c) =>
-    `<div class="stat-diff-item">` +
-    `<span class="stat-diff-dot" style="background:${COLOR_HEX[c]}"></span>` +
-    `<span>${COLOR_LABELS[c]}</span>` +
-    `<span class="stat-diff-count">${byColor[c] || 0}</span>` +
-    `</div>`
-  ).join("");
+  const totalRuns = runs.length;
+  const showPct = state.normalizeY && totalRuns > 0;
+  const diffItems = COLORS.map((c) => {
+    const count = byColor[c] || 0;
+    const display = showPct ? `${Math.round((count / totalRuns) * 100)}%` : String(count);
+    return (
+      `<div class="stat-diff-item">` +
+      `<span class="stat-diff-dot" style="background:${COLOR_HEX[c]}"></span>` +
+      `<span>${COLOR_LABELS[c]}</span>` +
+      `<span class="stat-diff-count">${display}</span>` +
+      `</div>`
+    );
+  }).join("");
 
   const steepnessScore = aggregate && aggregate.resort_steepness && resortName
     ? aggregate.resort_steepness[resortName]
@@ -142,9 +148,9 @@ function getAllResortValuesForColor(aggregate, medians, key, color) {
     .sort((a, b) => a - b);
 }
 
-function addInsightCard(container, text) {
+function addInsightCard(container, text, resortKey) {
   const card = document.createElement("div");
-  card.className = "insight-card";
+  card.className = "insight-card" + (resortKey === "a" ? " resort-a" : resortKey === "b" ? " resort-b" : "");
   card.textContent = text;
   container.appendChild(card);
 }
@@ -159,15 +165,17 @@ export function renderInsights(aggregate, state) {
   const { resortA, resortB, metric } = state;
   const key = metric === "average_pitch" ? "average_pitch" : "max_pitch";
   const candidates = [];
-  const push = (text) => {
-    if (text) candidates.push(text);
+  const push = (text, resortKey) => {
+    if (text) candidates.push({ text, resortKey: resortKey ?? null });
   };
 
   // 0 resorts: fallback only
   if (!resortA && !resortB) {
-    addInsightCard(container, "Select one or two resorts to see comparative insights.");
+    addInsightCard(container, "Select one or two resorts to see comparative insights.", null);
     return;
   }
+
+  const singleResortKey = resortA ? "a" : "b";
 
   if (resortA && resortB) {
     // 2 resorts: comparison insights only (combined comparison, then variety)
@@ -181,13 +189,14 @@ export function renderInsights(aggregate, state) {
       if ((blueAbs >= MIN_DIFF_PCT || blackAbs >= MIN_DIFF_PCT) && (blueDiff != null || blackDiff != null)) {
         const steeperBlue = blueDiff != null && blueAbs >= MIN_DIFF_PCT ? (mA.blue > mB.blue ? resortA : resortB) : null;
         const steeperBlack = blackDiff != null && blackAbs >= MIN_DIFF_PCT ? (mA.black > mB.black ? resortA : resortB) : null;
+        const keyFor = (name) => (name === resortA ? "a" : "b");
         if (steeperBlue && steeperBlack && steeperBlue === steeperBlack) {
-          push(`${steeperBlue} has steeper intermediate and advanced runs (${blueAbs.toFixed(1)}% and ${blackAbs.toFixed(1)}% median pitch difference).`);
+          push(`${steeperBlue} has steeper intermediate and advanced runs (${blueAbs.toFixed(1)}% and ${blackAbs.toFixed(1)}% median pitch difference).`, keyFor(steeperBlue));
         } else {
           const parts = [];
           if (steeperBlue) parts.push(`${steeperBlue} has steeper intermediate runs (${blueAbs.toFixed(1)}% median pitch difference)`);
           if (steeperBlack) parts.push(`${steeperBlack} has steeper advanced runs (${blackAbs.toFixed(1)}% median pitch difference)`);
-          if (parts.length) push(parts.join("; ") + ".");
+          if (parts.length) push(parts.join("; ") + ".", steeperBlue ? keyFor(steeperBlue) : keyFor(steeperBlack));
         }
       }
       // Variety: compare (black - green) spread
@@ -197,7 +206,7 @@ export function renderInsights(aggregate, state) {
         const varietyDiff = Math.abs(spreadA - spreadB);
         if (varietyDiff >= MIN_VARIETY_DIFF_PCT) {
           const wider = spreadA > spreadB ? resortA : resortB;
-          push(`${wider} has a wider difficulty range from beginner to advanced (${varietyDiff.toFixed(1)}% median pitch difference).`);
+          push(`${wider} has a wider difficulty range from beginner to advanced (${varietyDiff.toFixed(1)}% median pitch difference).`, wider === resortA ? "a" : "b");
         }
       }
     }
@@ -206,7 +215,7 @@ export function renderInsights(aggregate, state) {
     const resort = resortA || resortB;
     const m = medians[resort] && medians[resort][key];
     if (!m) {
-      addInsightCard(container, "Select one or two resorts to see comparative insights.");
+      addInsightCard(container, "Select one or two resorts to see comparative insights.", null);
       return;
     }
 
@@ -227,14 +236,15 @@ export function renderInsights(aggregate, state) {
     }
     if (bestRank != null && bestColorConfig != null && (bestRank < EXTREME_PERCENTILE_LO || bestRank > EXTREME_PERCENTILE_HI)) {
       push(
-        `${bestColorConfig} runs at ${resort} are steeper than ${bestRank}% of tracked resorts (median ${bestMedian.toFixed(1)}% pitch).`
+        `${bestColorConfig} runs at ${resort} are steeper than ${bestRank}% of tracked resorts (median ${bestMedian.toFixed(1)}% pitch).`,
+        singleResortKey
       );
     }
 
     // Same-resort spread: black - green
     if (m.black != null && m.green != null) {
       const spread = (m.black - m.green).toFixed(1);
-      push(`At ${resort}, advanced runs have a ${spread}% higher median pitch than beginner runs.`);
+      push(`At ${resort}, advanced runs have a ${spread}% higher median pitch than beginner runs.`, singleResortKey);
     }
 
     // Distribution band (where resort sits vs by_difficulty across tracked resorts)
@@ -252,7 +262,8 @@ export function renderInsights(aggregate, state) {
       else if (Math.abs(resortMedian - p50) <= 3) band = "near the median across tracked resorts";
       if (band) {
         push(
-          `At ${resort}, ${COLOR_LABELS[bandColor].toLowerCase()} runs (median ${resortMedian.toFixed(1)}% pitch) are ${band}.`
+          `At ${resort}, ${COLOR_LABELS[bandColor].toLowerCase()} runs (median ${resortMedian.toFixed(1)}% pitch) are ${band}.`,
+          singleResortKey
         );
         break;
       }
@@ -262,6 +273,8 @@ export function renderInsights(aggregate, state) {
   const fallbackMessage = (resortA || resortB)
     ? "No standout comparative insights for this pair with the current metric."
     : "Select one or two resorts to see comparative insights.";
-  const toShow = candidates.length ? candidates.slice(0, MAX_INSIGHT_CARDS) : [fallbackMessage];
-  toShow.forEach((text) => addInsightCard(container, text));
+  const toShow = candidates.length
+    ? candidates.slice(0, MAX_INSIGHT_CARDS)
+    : [{ text: fallbackMessage, resortKey: null }];
+  toShow.forEach((item) => addInsightCard(container, item.text, item.resortKey));
 }

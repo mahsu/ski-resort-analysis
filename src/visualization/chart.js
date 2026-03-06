@@ -137,12 +137,15 @@ export function drawChart(aggregate, resortCache, state) {
   d3.select(chartEl).selectAll("*").remove();
 
   const width = Math.max(chartEl.getBoundingClientRect().width || 0, chartEl.offsetWidth || 600);
-  const margin = { top: 40, right: 20, bottom: 50, left: 50 };
+  const margin = { top: 36, right: 20, bottom: 50, left: 50 };
   const innerWidth = width - margin.left - margin.right;
 
+  const CHART_HEIGHT = 340;
   const SUB_H = 165, SUB_GAP = 80, SUB_TITLE_OFFSET = -20;
-  const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : 420;
-  const innerHeight = useSmallMultiples ? SUB_H : 420 - margin.top - margin.bottom;
+  const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : CHART_HEIGHT;
+  const innerHeight = useSmallMultiples ? SUB_H : CHART_HEIGHT - margin.top - margin.bottom;
+
+  chartEl.style.height = useSmallMultiples ? `${svgHeight}px` : "";
 
   const svg = d3.select(chartEl).append("svg")
     .attr("width", width).attr("height", svgHeight)
@@ -173,8 +176,7 @@ export function drawChart(aggregate, resortCache, state) {
     const aggIndepScale = d3.scaleLinear().domain([0, aggRawMax]).range([SUB_H, 0]);
     const aggNormFactor = aggregate.total_runs ? 100 / aggregate.total_runs : 1;
 
-    panels.forEach(({ data, total, key, name, offsetY }, idx) => {
-      const isBottom = idx === panels.length - 1;
+    panels.forEach(({ data, total, key, name, offsetY }) => {
       const pg = svg.append("g").attr("transform", `translate(${margin.left},${offsetY})`);
 
       // Both panels share the same y-domain so their axes are always synced.
@@ -185,11 +187,9 @@ export function drawChart(aggregate, resortCache, state) {
         .attr("transform", `translate(0,${SUB_H})`).call(sharedXAxis);
       pg.append("g").attr("class", "axis y-axis").call(d3.axisLeft(panelYScale).ticks(4));
 
-      if (isBottom) {
-        pg.append("text").attr("class", "axis-label")
-          .attr("x", innerWidth / 2).attr("y", SUB_H + 38)
-          .attr("text-anchor", "middle").text("Pitch (%)");
-      }
+      pg.append("text").attr("class", "axis-label")
+        .attr("x", innerWidth / 2).attr("y", SUB_H + 38)
+        .attr("text-anchor", "middle").text("Pitch (%)");
 
       pg.append("text").attr("class", "axis-label")
         .attr("transform", "rotate(-90)")

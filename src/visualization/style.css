@@ -340,9 +340,9 @@ body {
 /* ── Layout ────────────────────────────────────────────────────────────────── */
 .main {
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
+  grid-template-columns: 300px 1fr 280px;
   gap: var(--space-lg);
-  padding: var(--space-lg) var(--space-xl);
+  padding: var(--space-md) var(--space-xl) var(--space-lg);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -357,17 +357,19 @@ body {
 /* ── Chart ─────────────────────────────────────────────────────────────────── */
 .chart-wrap {
   position: relative;
-  min-height: 540px;
+  min-height: 440px;
+  max-width: 720px;
+  margin: 0 auto;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  padding: var(--space-sm) var(--space-lg);
   box-shadow: var(--shadow-md);
 }
 
 .chart {
   width: 100%;
-  height: 420px;
+  height: 340px;
 }
 
 /* ── Sidebar ───────────────────────────────────────────────────────────────── */
@@ -641,8 +643,10 @@ body {
   transition: border-color var(--transition), color var(--transition);
 }
 
+.insight-card.resort-a { border-left-color: var(--resort-a); }
+.insight-card.resort-b { border-left-color: var(--resort-b); }
+
 .insight-card:hover {
-  border-color: var(--resort-a);
   color: var(--text);
 }
 
