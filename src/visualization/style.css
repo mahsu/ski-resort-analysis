@@ -183,7 +183,7 @@ body {
   align-items: center;
 }
 
-.resort-combobox input[type="text"] {
+.resort-combobox input {
   min-width: 210px;
   padding: var(--space-xs) var(--space-xl) var(--space-xs) var(--space-sm);
   background: var(--bg-panel);
@@ -196,16 +196,16 @@ body {
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
-.resort-combobox input[type="text"]::placeholder {
+.resort-combobox input::placeholder {
   color: var(--text-subtle);
   font-weight: var(--weight-normal);
 }
 
-.resort-combobox input[type="text"]:hover {
+.resort-combobox input:hover {
   border-color: var(--text-subtle);
 }
 
-.resort-combobox input[type="text"]:focus {
+.resort-combobox input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-dim);
