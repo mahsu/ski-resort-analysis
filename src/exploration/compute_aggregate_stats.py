@@ -112,11 +112,9 @@ def main() -> None:
         equal = sum(1 for s in all_scores if s == score)
         return round((below + 0.5 * equal) / len(all_scores) * 100, 1)
 
-    all_raw = list(resort_steepness_raw.values())
-    resort_steepness = {
-        name: percentile_rank(all_raw, raw)
-        for name, raw in resort_steepness_raw.items()
-    }
+    resort_names = sorted(resort_medians.keys())
+    all_raw = [resort_steepness_raw[n] for n in resort_names]
+    resort_steepness_list = [percentile_rank(all_raw, resort_steepness_raw[n]) for n in resort_names]
 
     def percentiles(xs: list[float], ps: tuple[float, ...]) -> dict[str, float]:
         if not xs:
@@ -154,7 +152,7 @@ def main() -> None:
     hist_max_filled = {k: hist_max.get(k, 0) for k in sorted(all_bins)}
 
     payload = {
-        "resort_names": sorted(resort_medians.keys()),
+        "resort_names": resort_names,
         "by_difficulty": {
             "average_pitch": by_color_percentiles_avg,
             "max_pitch": by_color_percentiles_max,
@@ -163,8 +161,8 @@ def main() -> None:
             "average_pitch": hist_to_list(hist_avg_filled),
             "max_pitch": hist_to_list(hist_max_filled),
         },
-        "resort_medians_by_color": resort_medians,
-        "resort_steepness": resort_steepness,
+        "resort_medians_by_color": [resort_medians[n] for n in resort_names],
+        "resort_steepness": resort_steepness_list,
         "total_runs": len(all_runs),
     }
 

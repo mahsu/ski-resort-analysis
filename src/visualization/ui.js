@@ -3,6 +3,13 @@ import { getRunsWithPitch } from "./data.js";
 
 const $ = (id) => document.getElementById(id);
 
+/** Return index of resort in aggregate.resort_names, or -1 if not found. */
+function getResortIndex(aggregate, resortName) {
+  const names = aggregate?.resort_names || [];
+  const i = names.indexOf(resortName);
+  return i >= 0 ? i : -1;
+}
+
 export function renderLegend() {
   const container = $("legend");
   if (!container) return;
@@ -87,8 +94,9 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
     );
   }).join("");
 
-  const steepnessScore = aggregate && aggregate.resort_steepness && resortName
-    ? aggregate.resort_steepness[resortName]
+  const resortIdx = aggregate && resortName ? getResortIndex(aggregate, resortName) : -1;
+  const steepnessScore = aggregate?.resort_steepness && resortIdx >= 0
+    ? aggregate.resort_steepness[resortIdx]
     : null;
   const steepnessHtml = steepnessScore != null
     ? `<div class="stat-row steepness-row">` +
@@ -143,7 +151,7 @@ const PERCENTILE_COLOR_CONFIG = [
 
 function getAllResortValuesForColor(aggregate, medians, key, color) {
   return (aggregate.resort_names || [])
-    .map((n) => medians[n] && medians[n][key] && medians[n][key][color])
+    .map((_, i) => medians[i] && medians[i][key] && medians[i][key][color])
     .filter((v) => v != null)
     .sort((a, b) => a - b);
 }
@@ -160,10 +168,12 @@ export function renderInsights(aggregate, state) {
   if (!container || !aggregate) return;
   container.innerHTML = "";
 
-  const medians = aggregate.resort_medians_by_color || {};
+  const medians = aggregate.resort_medians_by_color || [];
   const byDifficulty = aggregate.by_difficulty || {};
   const { resortA, resortB, metric } = state;
   const key = metric === "average_pitch" ? "average_pitch" : "max_pitch";
+  const idxA = resortA ? getResortIndex(aggregate, resortA) : -1;
+  const idxB = resortB ? getResortIndex(aggregate, resortB) : -1;
   const candidates = [];
   const push = (text, resortKey) => {
     if (text) candidates.push({ text, resortKey: resortKey ?? null });
@@ -179,8 +189,8 @@ export function renderInsights(aggregate, state) {
 
   if (resortA && resortB) {
     // 2 resorts: comparison insights only (combined comparison, then variety)
-    const mA = medians[resortA] && medians[resortA][key];
-    const mB = medians[resortB] && medians[resortB][key];
+    const mA = idxA >= 0 && medians[idxA] ? medians[idxA][key] : null;
+    const mB = idxB >= 0 && medians[idxB] ? medians[idxB][key] : null;
     if (mA && mB) {
       const blueDiff = mA.blue != null && mB.blue != null ? mB.blue - mA.blue : null;
       const blackDiff = mA.black != null && mB.black != null ? mB.black - mA.black : null;
@@ -213,7 +223,8 @@ export function renderInsights(aggregate, state) {
   } else {
     // 1 resort: single-resort insights only (one percentile, spread, distribution band)
     const resort = resortA || resortB;
-    const m = medians[resort] && medians[resort][key];
+    const idx = getResortIndex(aggregate, resort);
+    const m = idx >= 0 && medians[idx] ? medians[idx][key] : null;
     if (!m) {
       addInsightCard(container, "Select one or two resorts to see comparative insights.", null);
       return;
