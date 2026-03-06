@@ -84,14 +84,14 @@ def main() -> None:
     parser.add_argument(
         "csv_path",
         nargs="?",
-        default="runs.csv",
-        help="Path to runs.csv (default: runs.csv)",
+        default="data/runs.csv",
+        help="Path to runs.csv (default: data/runs.csv)",
     )
     parser.add_argument(
         "--ski-areas",
         type=Path,
-        required=True,
-        help="Path to filtered ski_areas CSV (required); only runs for these areas are kept",
+        default=Path("data/filtered_ski_areas.csv"),
+        help="Path to filtered ski_areas CSV (default: data/filtered_ski_areas.csv); only runs for these areas are kept",
     )
     parser.add_argument(
         "-o",

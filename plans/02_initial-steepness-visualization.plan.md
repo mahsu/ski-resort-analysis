@@ -28,7 +28,7 @@ data/
   resorts/            ← existing per-resort JSON (loaded on demand)
   aggregate_stats.json ← pre-baked: pitch distribution + percentile breakdowns by difficulty
 
-src/exploration/
+src/data_pipeline/
   compute_aggregate_stats.py  ← new script, reads all resort JSONs, outputs aggregate_stats.json
 ```
 
@@ -72,11 +72,11 @@ Beyond the core histogram, here are strong candidates to add later:
 
 ## Implementation Tasks
 
-- [x] `src/exploration/compute_aggregate_stats.py` — pre-bake `data/aggregate_stats.json` (pitch histograms + percentile breakdowns by difficulty across all resorts)
+- [x] `src/data_pipeline/compute_aggregate_stats.py` — pre-bake `data/aggregate_stats.json` (pitch histograms + percentile breakdowns by difficulty across all resorts)
 - [x] `src/visualization/index.html` — controls (resort dropdowns, pitch toggle, aggregate toggle), chart container, legend, stat panel
 - [x] `src/visualization/style.css` — dark navy theme, axis styles, difficulty color palette
 - [x] `src/visualization/app.js` — D3 v7: resort loading, `d3.bin()`, stacked bars, aggregate overlay curve, tooltips, insight card generation
 
 ## How to run
 
-From the repo root, serve the project (e.g. `python3 -m http.server 8765`), then open `http://localhost:8765/src/visualization/index.html`. The app loads `data/aggregate_stats.json` and resort JSONs from `data/resorts/` using paths relative to the page. Regenerate aggregate stats after updating resort data: `./venv/bin/python src/exploration/compute_aggregate_stats.py`.
+From the repo root, serve the project (e.g. `python3 -m http.server 8765`), then open `http://localhost:8765/src/visualization/index.html`. The app loads `data/aggregate_stats.json` and resort JSONs from `data/resorts/` using paths relative to the page. Regenerate aggregate stats after updating resort data: `./venv/bin/python src/data_pipeline/compute_aggregate_stats.py`.

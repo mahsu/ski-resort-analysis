@@ -30,8 +30,8 @@ def main() -> None:
     parser.add_argument(
         "csv_path",
         nargs="?",
-        default="ski_areas.csv",
-        help="Path to ski_areas.csv (default: ski_areas.csv)",
+        default="data/ski_areas.csv",
+        help="Path to ski_areas.csv (default: data/ski_areas.csv)",
     )
     parser.add_argument(
         "-o",

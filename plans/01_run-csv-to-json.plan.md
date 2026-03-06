@@ -50,7 +50,7 @@ isProject: false
 
 ## Deliverable
 
-- Script at **[src/exploration/run_csv_to_json.py](src/exploration/run_csv_to_json.py)** that uses **pandas** to read, filter (US + `uses == "downhill"` only), and group; writes one JSON file per US resort with **more than one run** under **`data/resorts/`** (create directory if needed); excludes rows without `ski_area_names` and excludes `geometry` from each run object.
+- Script at **[src/data_pipeline/run_csv_to_json.py](src/data_pipeline/run_csv_to_json.py)** that uses **pandas** to read, filter (US + `uses == "downhill"` only), and group; writes one JSON file per US resort with **more than one run** under **`data/resorts/`** (create directory if needed); excludes rows without `ski_area_names` and excludes `geometry` from each run object.
 - **requirements.txt** at project root with `pandas` (pinned version optional) so future aggregation work can rely on the same dependency.
 
 ## Setup and run (virtualenv)
@@ -61,7 +61,7 @@ Use a project virtualenv so dependencies are not installed globally:
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python src/exploration/run_csv_to_json.py runs.csv
+python src/data_pipeline/run_csv_to_json.py runs.csv
 ```
 
 Output is written to `data/resorts/`.

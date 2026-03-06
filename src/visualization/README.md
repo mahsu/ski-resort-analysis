@@ -45,7 +45,7 @@ D3.js single-page app that compares run steepness (pitch) between two ski resort
 After adding or changing resort data in `data/resorts/`, rebuild the aggregate file from the repo root:
 
 ```bash
-./venv/bin/python src/exploration/compute_aggregate_stats.py
+./venv/bin/python src/data_pipeline/compute_aggregate_stats.py
 ```
 
 This overwrites `data/aggregate_stats.json`. Reload the visualization page to use the new data.

@@ -1,9 +1,10 @@
 """
-Run the full ski-areas data pipeline: filter ski_areas → runs to JSON → aggregate stats.
+Run the full ski-areas data pipeline: download → filter ski_areas → runs to JSON → aggregate stats.
 
 Steps:
-1. filter_ski_areas.py on ski_areas.csv → data/filtered_ski_areas.csv
-2. run_csv_to_json.py on runs.csv with --ski-areas → data/resorts/*.json
+0. download_resort_data.py → data/ski_areas.csv, data/runs.csv
+1. filter_ski_areas.py on data/ski_areas.csv → data/filtered_ski_areas.csv
+2. run_csv_to_json.py on data/runs.csv with --ski-areas → data/resorts/*.json
 3. compute_aggregate_stats.py → data/aggregate_stats.json
 
 Run from repo root. Uses the same Python interpreter (e.g. venv) so dependencies apply.
@@ -16,8 +17,8 @@ from pathlib import Path
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_SKI_AREAS_CSV = "ski_areas.csv"
-DEFAULT_RUNS_CSV = "runs.csv"
+DEFAULT_SKI_AREAS_CSV = Path("data/ski_areas.csv")
+DEFAULT_RUNS_CSV = Path("data/runs.csv")
 FILTERED_SKI_AREAS = Path("data/filtered_ski_areas.csv")
 RESORTS_DIR = Path("data/resorts")
 
@@ -27,18 +28,38 @@ def main() -> None:
     parser.add_argument(
         "--ski-areas-csv",
         type=Path,
-        default=Path(DEFAULT_SKI_AREAS_CSV),
+        default=DEFAULT_SKI_AREAS_CSV,
         help=f"Input ski_areas CSV (default: {DEFAULT_SKI_AREAS_CSV})",
     )
     parser.add_argument(
         "--runs-csv",
         type=Path,
-        default=Path(DEFAULT_RUNS_CSV),
+        default=DEFAULT_RUNS_CSV,
         help=f"Input runs CSV (default: {DEFAULT_RUNS_CSV})",
+    )
+    parser.add_argument(
+        "--skip-download",
+        action="store_true",
+        help="Skip step 0 (download); use existing CSVs in data/",
     )
     args = parser.parse_args()
 
     python = sys.executable
+
+    # Step 0: download resort data to data/
+    if not args.skip_download:
+        download_script = SCRIPT_DIR / "download_resort_data.py"
+        subprocess.run(
+            [
+                python,
+                str(download_script),
+                "--ski-areas-out",
+                str(args.ski_areas_csv),
+                "--runs-out",
+                str(args.runs_csv),
+            ],
+            check=True,
+        )
 
     # Step 1: filter ski areas
     filter_script = SCRIPT_DIR / "filter_ski_areas.py"

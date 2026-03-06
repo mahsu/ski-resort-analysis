@@ -2,15 +2,15 @@
 
 ## Current state
 
-- [run_csv_to_json.py](src/exploration/run_csv_to_json.py) reads `runs.csv`, filters to United States only and downhill, groups by `ski_area_names`, writes one JSON per resort under `data/resorts/`. It does not use `ski_areas.csv`.
-- [compute_aggregate_stats.py](src/exploration/compute_aggregate_stats.py) globs `data/resorts/*.json` and writes `data/aggregate_stats.json` (no CLI args).
+- [run_csv_to_json.py](src/data_pipeline/run_csv_to_json.py) reads `runs.csv`, filters to United States only and downhill, groups by `ski_area_names`, writes one JSON per resort under `data/resorts/`. It does not use `ski_areas.csv`.
+- [compute_aggregate_stats.py](src/data_pipeline/compute_aggregate_stats.py) globs `data/resorts/*.json` and writes `data/aggregate_stats.json` (no CLI args).
 - Runs are linked to areas via `ski_area_names` and `ski_area_ids`; [ski_areas.csv](ski_areas.csv) has `name` and `id` (same id format as `runs.ski_area_ids`).
 
 ---
 
 ## 1. New script: filter_ski_areas.py
 
-**File:** `src/exploration/filter_ski_areas.py`
+**File:** `src/data_pipeline/filter_ski_areas.py`
 
 **Input:** `ski_areas.csv` (path via CLI, default `ski_areas.csv`).
 
@@ -33,7 +33,7 @@
 
 ## 2. Extend run_csv_to_json.py: require --ski-areas
 
-**File:** [src/exploration/run_csv_to_json.py](src/exploration/run_csv_to_json.py)
+**File:** [src/data_pipeline/run_csv_to_json.py](src/data_pipeline/run_csv_to_json.py)
 
 - **`--ski-areas PATH`** is **required**. Do not support running without it (no backward compatibility).
 - Load the CSV at PATH and collect the set of `id` values (column `id`).
@@ -54,7 +54,7 @@
 
 ## 3. Pipeline script: run_pipeline.py
 
-**File:** `src/exploration/run_pipeline.py`
+**File:** `src/data_pipeline/run_pipeline.py`
 
 Single entry point that runs, in order:
 
@@ -62,7 +62,7 @@ Single entry point that runs, in order:
 2. **Runs to JSON:** Run `run_csv_to_json` with `runs.csv` and `--ski-areas data/filtered_ski_areas.csv`, output to `data/resorts` (default).
 3. **Aggregate stats:** Run `compute_aggregate_stats` (no args).
 
-**Implementation:** Use `subprocess` and `sys.executable` so the pipeline works with the project venv when invoked from repo root (e.g. `./venv/bin/python src/exploration/run_pipeline.py`). Paths relative to CWD (repo root).
+**Implementation:** Use `subprocess` and `sys.executable` so the pipeline works with the project venv when invoked from repo root (e.g. `./venv/bin/python src/data_pipeline/run_pipeline.py`). Paths relative to CWD (repo root).
 
 **Optional CLI:** `--ski-areas-csv`, `--runs-csv` to override input paths; defaults `ski_areas.csv`, `runs.csv`.
 
@@ -113,15 +113,15 @@ From repo root with venv activated:
 
 ```bash
 # Full pipeline
-./venv/bin/python src/exploration/run_pipeline.py
+./venv/bin/python src/data_pipeline/run_pipeline.py
 ```
 
 Run steps manually:
 
 ```bash
-./venv/bin/python src/exploration/filter_ski_areas.py ski_areas.csv -o data/filtered_ski_areas.csv
-./venv/bin/python src/exploration/run_csv_to_json.py runs.csv --ski-areas data/filtered_ski_areas.csv -o data/resorts
-./venv/bin/python src/exploration/compute_aggregate_stats.py
+./venv/bin/python src/data_pipeline/filter_ski_areas.py ski_areas.csv -o data/filtered_ski_areas.csv
+./venv/bin/python src/data_pipeline/run_csv_to_json.py runs.csv --ski-areas data/filtered_ski_areas.csv -o data/resorts
+./venv/bin/python src/data_pipeline/compute_aggregate_stats.py
 ```
 
 ---
