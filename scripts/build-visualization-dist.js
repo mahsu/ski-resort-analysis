@@ -13,6 +13,41 @@ const ROOT = path.resolve(__dirname, "..");
 const VIZ = path.join(ROOT, "src", "visualization");
 const DATA = path.join(ROOT, "data");
 const DIST = path.join(ROOT, "dist");
+const DEPLOY_CONFIG_PATH = path.join(ROOT, "config", "deploy.json");
+
+/**
+ * Load GA measurement ID: from env GA_MEASUREMENT_ID, or config/deploy.json (optional).
+ * config/deploy.json is gitignored; copy config/deploy.example.json and set gaMeasurementId.
+ */
+async function loadGaMeasurementId() {
+  const fromEnv = process.env.GA_MEASUREMENT_ID;
+  if (fromEnv && fromEnv.trim()) return fromEnv.trim();
+  try {
+    const raw = await fs.readFile(DEPLOY_CONFIG_PATH, "utf8");
+    const config = JSON.parse(raw);
+    const id = config.gaMeasurementId;
+    return typeof id === "string" && id.trim() ? id.trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+function gaSnippet(measurementId) {
+  return `  <script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+      gtag("consent", "default", {
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied",
+      analytics_storage: "denied",
+  });
+    gtag('config', '${measurementId}');
+  </script>
+`;
+}
 
 function minifyJson(content) {
   return JSON.stringify(JSON.parse(content));
@@ -84,11 +119,16 @@ async function main() {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 
-  // 4. Minify HTML (script already points to app.js; no substitution needed)
+  // 4. HTML: inject GA if configured, then minify
   let html = await fs.readFile(path.join(VIZ, "index.html"), "utf8");
+  const gaId = await loadGaMeasurementId();
+  const gaBlock = gaId ? gaSnippet(gaId) : "";
+  html = html.replace("<!-- INJECT_GA -->", gaBlock);
   await fs.writeFile(path.join(DIST, "index.html"), minifyHtml(html));
 
   console.log("Built dist/ (minified index.html, style.css, app.js, data/)");
+  if (gaId) console.log("  GA: injected", gaId);
+  else console.log("  GA: none (set config/deploy.json gaMeasurementId or GA_MEASUREMENT_ID)");
 }
 
 main().catch((err) => {

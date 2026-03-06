@@ -65,7 +65,7 @@ This overwrites `data/aggregate_stats.json`. Reload the visualization page to us
 
 Data is loaded from the repo `data/` directory using paths relative to the page URL, so the app must be served from the repo root (as in the steps above).
 
-g## Deploy / dist build
+## Deploy / dist build
 
 To build a minified bundle for deployment (e.g. to a subfolder on another site):
 
@@ -78,3 +78,12 @@ To build a minified bundle for deployment (e.g. to a subfolder on another site):
 2. Copy the **contents** of `dist/` (not the `dist` folder itself) into your target subfolder (e.g. `ski/`). You should get `index.html`, `style.css`, `app.js`, and `data/` at the root of that subfolder.
 
 3. The built app uses `DATA_BASE = "data/"` so fetch paths resolve correctly when served from the subfolder. No server config is required beyond serving static files.
+
+### Google Analytics (optional)
+
+To inject a GA4 measurement ID into the built `index.html`, use **one** of:
+
+- **Config file** (gitignored): Copy `config/deploy.example.json` to `config/deploy.json` and set `"gaMeasurementId": "G-XXXXXXXXXX"`. The build reads this and injects the gtag snippet when present.
+- **Environment variable**: Set `GA_MEASUREMENT_ID=G-XXXXXXXXXX` when running the build (e.g. in CI). Env overrides the config file.
+
+If neither is set, the build completes with no GA snippet (dev-friendly). The ID is never hardcoded in source.
