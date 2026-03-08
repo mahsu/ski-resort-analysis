@@ -34,7 +34,7 @@ export function renderResortLegend(state) {
         ([key, name]) =>
           `<div class="legend-item resort-legend-item">` +
           `<span class="legend-swatch resort-swatch" style="background:${RESORT_COLORS[key]};opacity:0.85"></span>` +
-          `<span class="resort-label-key">Resort ${key}</span> ${name}` +
+          `<span class="resort-label-key">Resort ${key}</span> <span class="resort-label-name">${name}</span>` +
           `</div>`
       )
       .join("");
@@ -282,7 +282,7 @@ export function renderInsights(aggregate, state) {
   }
 
   const fallbackMessage = (resortA || resortB)
-    ? "No standout comparative insights for this pair with the current metric."
+    ? "No insights stand out for the selected resorts with the selected metric"
     : "Select one or two resorts to see comparative insights.";
   const toShow = candidates.length
     ? candidates.slice(0, MAX_INSIGHT_CARDS)

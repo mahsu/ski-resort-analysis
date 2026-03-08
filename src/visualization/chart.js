@@ -136,6 +136,12 @@ export function drawChart(aggregate, resortCache, state) {
 
   d3.select(chartEl).selectAll("*").remove();
 
+  const chartWrap = chartEl.closest(".chart-wrap");
+  const isLinesMode = state.chartMode === "lines";
+  if (chartWrap) {
+    chartWrap.classList.toggle("lines-mode", isLinesMode);
+  }
+
   const width = Math.max(chartEl.getBoundingClientRect().width || 0, chartEl.offsetWidth || 600);
   const isCompact = width < 560;
   const isVeryCompact = width < 420;
@@ -151,10 +157,14 @@ export function drawChart(aggregate, resortCache, state) {
   const axisLabelYOffset = isCompact ? 30 : 38;
   const yAxisLabelOffset = isCompact ? -30 : -42;
   const xTickStep = isVeryCompact ? 20 : 10;
-  const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : CHART_HEIGHT;
-  const innerHeight = useSmallMultiples ? SUB_H : CHART_HEIGHT - margin.top - margin.bottom;
 
-  chartEl.style.height = useSmallMultiples ? `${svgHeight}px` : "";
+  const chartHeight = isLinesMode && chartWrap
+    ? Math.max(CHART_HEIGHT, chartEl.offsetHeight || CHART_HEIGHT)
+    : CHART_HEIGHT;
+  const svgHeight = useSmallMultiples ? margin.top + SUB_H * 2 + SUB_GAP + margin.bottom : chartHeight;
+  const innerHeight = useSmallMultiples ? SUB_H : chartHeight - margin.top - margin.bottom;
+
+  chartEl.style.height = useSmallMultiples ? `${svgHeight}px` : isLinesMode ? `${chartHeight}px` : "";
   chartEl.classList.toggle("compact-chart", isCompact);
 
   const svg = d3.select(chartEl).append("svg")
@@ -197,9 +207,10 @@ export function drawChart(aggregate, resortCache, state) {
         .attr("transform", `translate(0,${SUB_H})`).call(sharedXAxis);
       pg.append("g").attr("class", "axis y-axis").call(d3.axisLeft(panelYScale).ticks(4));
 
+      const xAxisLabel = metric === "average_pitch" ? "Avg Pitch (%)" : "Max Pitch (%)";
       pg.append("text").attr("class", "axis-label")
         .attr("x", innerWidth / 2).attr("y", SUB_H + axisLabelYOffset)
-        .attr("text-anchor", "middle").text("Pitch (%)");
+        .attr("text-anchor", "middle").text(xAxisLabel);
 
       pg.append("text").attr("class", "axis-label")
         .attr("transform", "rotate(-90)")
@@ -278,15 +289,23 @@ export function drawChart(aggregate, resortCache, state) {
     .attr("transform", `translate(0,${innerHeight})`).call(sharedXAxis);
   g.append("g").attr("class", "axis y-axis").call(d3.axisLeft(yScale));
 
+  const xAxisLabel = metric === "average_pitch" ? "Avg Pitch (%)" : "Max Pitch (%)";
   g.append("text").attr("class", "axis-label")
     .attr("x", innerWidth / 2).attr("y", innerHeight + axisLabelYOffset)
-    .attr("text-anchor", "middle").text("Pitch (%)");
+    .attr("text-anchor", "middle").text(xAxisLabel);
 
   g.append("text").attr("class", "axis-label")
     .attr("transform", "rotate(-90)")
     .attr("x", -innerHeight / 2).attr("y", yAxisLabelOffset)
     .attr("text-anchor", "middle")
     .text(state.normalizeY ? "% of runs" : "Number of runs");
+
+  if (state.chartMode === "lines") {
+    const titleText = metric === "average_pitch" ? "Average Pitch Distribution" : "Max Pitch Distribution";
+    g.append("text").attr("class", "panel-resort-label")
+      .attr("x", 0).attr("y", SUB_TITLE_OFFSET)
+      .attr("text-anchor", "start").text(titleText);
+  }
 
   function drawStackedBars(bins, total, opacity, seriesKey) {
     if (!bins.length) return;

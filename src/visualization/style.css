@@ -68,7 +68,7 @@ body {
 /* ── Attribution footer ─────────────────────────────────────────────────────── */
 .attribution {
   margin-top: auto;
-  padding: var(--space-sm) var(--space-xl);
+  padding: var(--space-sm) var(--space-lg);
   font-size: var(--text-sm);
   color: var(--text-subtle);
   border-top: none;
@@ -85,7 +85,7 @@ body {
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: var(--space-sm); height: var(--space-sm); }
+::-webkit-scrollbar { width: var(--space-xs); height: var(--space-sm); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
@@ -367,6 +367,18 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+.chart-wrap.lines-mode {
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+  height: 100%;
+}
+
+.chart-wrap.lines-mode .chart {
+  flex: 1;
+  min-height: 0;
+}
+
 .chart {
   width: 100%;
   height: 340px;
@@ -446,6 +458,7 @@ body {
 .resort-label-key {
   font-weight: var(--weight-bold);
   margin-right: 0.2rem;
+  white-space: nowrap;
 }
 
 .legend-swatch.resort-swatch {
@@ -784,11 +797,16 @@ body {
  * Mobile breakpoint: single column, reorder sections, and fix the
  * resort-selector control row so each label+input pair is on its own line.
  */
-@media (max-width: 700px) {
+@media (max-width: 990px) {
   .header {
     position: static;
     width: 100%;
     padding: var(--space-sm) var(--space-md);
+  }
+
+  .attribution {
+    padding-left: var(--space-md);
+    padding-right: var(--space-md);
   }
 
   /* Two-column grid (label | input) so each resort stays on its own row */
@@ -841,6 +859,10 @@ body {
     min-height: unset;
     padding: var(--space-xs) var(--space-sm);
     overflow: hidden;
+  }
+
+  .chart-wrap.lines-mode {
+    height: 320px;
   }
 
   .chart {
