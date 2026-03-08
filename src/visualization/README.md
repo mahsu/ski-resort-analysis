@@ -79,11 +79,11 @@ To build a minified bundle for deployment (e.g. to a subfolder on another site):
 
 3. The built app uses `DATA_BASE = "data/"` so fetch paths resolve correctly when served from the subfolder. No server config is required beyond serving static files.
 
-### Google Analytics (optional)
+### Umami (optional)
 
-To inject a GA4 measurement ID into the built `index.html`, use **one** of:
+To inject the Umami analytics script into the built `index.html`, use **one** of:
 
-- **Config file** (gitignored): Copy `config/deploy.example.json` to `config/deploy.json` and set `"gaMeasurementId": "G-XXXXXXXXXX"`. The build reads this and injects the gtag snippet when present.
-- **Environment variable**: Set `GA_MEASUREMENT_ID=G-XXXXXXXXXX` when running the build (e.g. in CI). Env overrides the config file.
+- **Config file** (gitignored): Create `config/deploy.json` and set `"umamiWebsiteId": "your-website-id"`. The build reads this and injects the Umami script when present.
+- **Environment variable**: Set `UMAMI_WEBSITE_ID=your-website-id` when running the build (e.g. in CI). Env overrides the config file.
 
-If neither is set, the build completes with no GA snippet (dev-friendly). The ID is never hardcoded in source.
+If neither is set, the build completes with no analytics snippet (dev-friendly). The website ID is never hardcoded in source.

@@ -28,12 +28,12 @@ async function loadDeployConfig() {
   }
 }
 
-/** GA measurement ID: from env GA_MEASUREMENT_ID, or deploy config. */
-async function loadGaMeasurementId() {
-  const fromEnv = process.env.GA_MEASUREMENT_ID;
+/** Umami website ID: from env UMAMI_WEBSITE_ID, or deploy config. */
+async function loadUmamiWebsiteId() {
+  const fromEnv = process.env.UMAMI_WEBSITE_ID;
   if (fromEnv && fromEnv.trim()) return fromEnv.trim();
   const config = await loadDeployConfig();
-  const id = config.gaMeasurementId;
+  const id = config.umamiWebsiteId;
   return typeof id === "string" && id.trim() ? id.trim() : "";
 }
 
@@ -46,20 +46,8 @@ async function loadSiteUrl() {
   return typeof url === "string" && url.trim() ? url.trim() : "";
 }
 
-function gaSnippet(measurementId) {
-  return `  <script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-      gtag("consent", "default", {
-      ad_storage: "denied",
-      ad_user_data: "denied",
-      ad_personalization: "denied",
-      analytics_storage: "denied",
-  });
-    gtag('config', '${measurementId}');
-  </script>
+function umamiSnippet(websiteId) {
+  return `  <script defer src="https://cloud.umami.is/script.js" data-website-id="${websiteId}"></script>
 `;
 }
 
@@ -121,11 +109,11 @@ async function main() {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 
-  // 4. HTML: inject GA and og:url if configured, then minify (minify package expects a path, so use temp file)
+  // 4. HTML: inject Umami and og:url if configured, then minify (minify package expects a path, so use temp file)
   let html = await fs.readFile(path.join(VIZ, "index.html"), "utf8");
-  const gaId = await loadGaMeasurementId();
-  const gaBlock = gaId ? gaSnippet(gaId) : "";
-  html = html.replace("<!-- INJECT_GA -->", gaBlock);
+  const umamiId = await loadUmamiWebsiteId();
+  const umamiBlock = umamiId ? umamiSnippet(umamiId) : "";
+  html = html.replace("<!-- INJECT_UMAMI -->", umamiBlock);
   const siteUrl = await loadSiteUrl();
   const ogUrlMeta = siteUrl
     ? `  <meta property="og:url" content="${siteUrl}">\n  `
@@ -141,8 +129,8 @@ async function main() {
   }
 
   console.log("Built dist/ (minified index.html, style.css, app.js, data/)");
-  if (gaId) console.log("  GA: injected", gaId);
-  else console.log("  GA: none (set config/deploy.json gaMeasurementId or GA_MEASUREMENT_ID)");
+  if (umamiId) console.log("  Umami: injected", umamiId);
+  else console.log("  Umami: none (set config/deploy.json umamiWebsiteId or UMAMI_WEBSITE_ID)");
   if (siteUrl) console.log("  og:url:", siteUrl);
   else console.log("  og:url: none (set config/deploy.json siteUrl or SITE_URL)");
 }
