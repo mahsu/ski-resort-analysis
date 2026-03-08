@@ -46,6 +46,29 @@ async function loadSiteUrl() {
   return typeof url === "string" && url.trim() ? url.trim() : "";
 }
 
+/** Formatted "Data refreshed on …" snippet from deploy config dataRefreshedOn (YYYY-MM-DD), or empty string. */
+async function loadDataRefreshSnippet() {
+  const config = await loadDeployConfig();
+  const raw = config.dataRefreshedOn;
+  if (typeof raw !== "string" || !raw.trim()) return "";
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw.trim());
+  if (!match) return "";
+  const [, y, m, dStr] = match;
+  const year = parseInt(y, 10);
+  const month = parseInt(m, 10);
+  const day = parseInt(dStr, 10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return "";
+  const d = new Date(year, month - 1, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day)
+    return "";
+  const formatted = d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  return ` <span id="data-refresh">Data refreshed on ${formatted}.</span>`;
+}
+
 function umamiSnippet(websiteId) {
   return `  <script defer src="https://cloud.umami.is/script.js" data-website-id="${websiteId}"></script>
 `;
@@ -119,6 +142,9 @@ async function main() {
     ? `  <meta property="og:url" content="${siteUrl}">\n  `
     : "";
   html = html.replace("<!-- INJECT_OG_URL -->", ogUrlMeta);
+  const dataRefreshSnippet = await loadDataRefreshSnippet();
+  const dataRefreshPlaceholder = '<span id="data-refresh"></span>';
+  html = html.replace(dataRefreshPlaceholder, dataRefreshSnippet);
   const htmlTempPath = path.join(os.tmpdir(), `viz-build-html-${Date.now()}.html`);
   try {
     await fs.writeFile(htmlTempPath, html, "utf8");
@@ -133,6 +159,8 @@ async function main() {
   else console.log("  Umami: none (set config/deploy.json umamiWebsiteId or UMAMI_WEBSITE_ID)");
   if (siteUrl) console.log("  og:url:", siteUrl);
   else console.log("  og:url: none (set config/deploy.json siteUrl or SITE_URL)");
+  if (dataRefreshSnippet) console.log("  Data refresh: injected");
+  else console.log("  Data refresh: none (set config/deploy.json dataRefreshedOn or run pipeline without --skip-download)");
 }
 
 main().catch((err) => {

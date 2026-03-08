@@ -11,12 +11,16 @@ Run from repo root. Uses the same Python interpreter (e.g. venv) so dependencies
 """
 
 import argparse
+import json
 import subprocess
 import sys
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+DEPLOY_CONFIG = REPO_ROOT / "config" / "deploy.json"
 DEFAULT_SKI_AREAS_CSV = Path("data/ski_areas.csv")
 DEFAULT_RUNS_CSV = Path("data/runs.csv")
 FILTERED_SKI_AREAS = Path("data/filtered_ski_areas.csv")
@@ -60,6 +64,16 @@ def main() -> None:
             ],
             check=True,
         )
+        # Record download date in config/deploy.json for the visualization footer
+        deploy = {}
+        if DEPLOY_CONFIG.exists():
+            try:
+                deploy = json.loads(DEPLOY_CONFIG.read_text())
+            except (json.JSONDecodeError, OSError):
+                pass
+        deploy["dataRefreshedOn"] = datetime.now(timezone.utc).date().isoformat()
+        DEPLOY_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+        DEPLOY_CONFIG.write_text(json.dumps(deploy, indent=2) + "\n")
 
     # Step 1: filter ski areas
     filter_script = SCRIPT_DIR / "filter_ski_areas.py"

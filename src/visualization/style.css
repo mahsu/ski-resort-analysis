@@ -84,6 +84,10 @@ body {
   text-decoration: underline;
 }
 
+.attribution #data-refresh {
+  display: inline;
+}
+
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: var(--space-xs); height: var(--space-sm); }
 ::-webkit-scrollbar-track { background: transparent; }
