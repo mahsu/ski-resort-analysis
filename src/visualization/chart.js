@@ -1,4 +1,4 @@
-import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX } from "./constants.js";
+import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS } from "./constants.js";
 import { capAggregateBins, binRuns } from "./data.js";
 
 // ── Tooltip helpers ──────────────────────────────────────────────────────────
@@ -47,6 +47,77 @@ function buildMultiBinHtml(binLabel, entries) {
     html += parts.map((p) => `<div class="tip-row">${p}</div>`).join("");
   });
   return html;
+}
+
+// ── Run detail modal ─────────────────────────────────────────────────────────
+
+function initModal() {
+  const overlay = document.getElementById("run-modal");
+  const closeBtn = document.getElementById("modal-close");
+  if (!overlay) return;
+
+  function close() {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("modal-open");
+  }
+
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
+  });
+}
+
+let modalInitialized = false;
+
+function showRunModal(runs, binLo, binHi, metric, resortName) {
+  if (!modalInitialized) { initModal(); modalInitialized = true; }
+
+  const overlay = document.getElementById("run-modal");
+  const titleEl = document.getElementById("modal-title");
+  const pitchHeader = document.getElementById("modal-pitch-header");
+  const tbody = document.getElementById("modal-tbody");
+
+  const field = PITCH_FIELDS[metric];
+  const filtered = runs
+    .filter((r) => {
+      const v = r[field];
+      if (v == null || typeof v !== "number") return false;
+      const pct = Math.min(v * 100, MAX_PITCH);
+      return pct >= binLo && pct < binHi;
+    })
+    .map((r) => ({
+      name: r.name,
+      pitch: r[field] * 100,
+      color: (r.color || "grey").toLowerCase(),
+      difficulty: r.difficulty || "unknown",
+    }))
+    .sort((a, b) => b.pitch - a.pitch);
+
+  const isAvg = metric === "average_pitch";
+  const binLabel = binLo >= MAX_PITCH ? `≥ ${MAX_PITCH}%` : `${binLo}–${binHi}%`;
+  const pitchLabel = isAvg ? "Avg Pitch" : "Max Pitch";
+  titleEl.textContent = `${resortName} (${binLabel} ${pitchLabel})`;
+  pitchHeader.textContent = isAvg ? "Avg Pitch" : "Max Pitch";
+
+  tbody.innerHTML = "";
+  filtered.forEach((r) => {
+    const tr = document.createElement("tr");
+    const hex = COLOR_HEX[r.color] || COLOR_HEX.grey;
+    tr.innerHTML =
+      `<td>${r.name}</td>` +
+      `<td>${r.pitch.toFixed(1)}%</td>` +
+      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.querySelector(".modal-body").scrollTop = 0;
+  overlay.setAttribute("aria-hidden", "false");
+  overlay.classList.add("is-open");
+  document.documentElement.classList.add("modal-open");
 }
 
 // ── Scale bound computation ──────────────────────────────────────────────────
@@ -262,7 +333,13 @@ export function drawChart(aggregate, resortCache, state) {
               showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), name, bin));
             })
             .on("mousemove", (event) => moveTooltip(tooltipEl, event))
-            .on("mouseleave", () => hideTooltip(tooltipEl));
+            .on("mouseleave", () => hideTooltip(tooltipEl))
+            .on("click", (event, d) => {
+              hideTooltip(tooltipEl);
+              const runs = key === "A" ? runsA : runsB;
+              if (runs) showRunModal(runs, d.lo, d.hi, metric, name);
+            })
+            .style("cursor", "pointer");
         });
       }
 
@@ -353,7 +430,13 @@ export function drawChart(aggregate, resortCache, state) {
           showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), resortLabel, bin));
         })
         .on("mousemove", (event) => moveTooltip(tooltipEl, event))
-        .on("mouseleave", () => hideTooltip(tooltipEl));
+        .on("mouseleave", () => hideTooltip(tooltipEl))
+        .on("click", (event, d) => {
+          hideTooltip(tooltipEl);
+          const runs = seriesKey === "A" ? runsA : runsB;
+          if (runs && resortLabel) showRunModal(runs, d.lo, d.hi, metric, resortLabel);
+        })
+        .style("cursor", "pointer");
     });
   }
 
