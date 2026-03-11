@@ -97,7 +97,7 @@ Useful for debugging or re-running only part of the pipeline:
 
 - **`download_resort_data.py`** — Fetches `ski_areas.csv` and `runs.csv` from OpenSkiMap. Options: `--ski-areas-out`, `--runs-out` (defaults: `data/ski_areas.csv`, `data/runs.csv`).
 - **`filter_ski_areas.py`** — Keeps North America (US, Canada, Mexico), operating, downhill areas with valid `vertical_m`, `lift_count`, `downhill_distance_km` and minimum thresholds. Positional input path (default `data/ski_areas.csv`), `-o` for output (default `data/filtered_ski_areas.csv`).
-- **`run_csv_to_json.py`** — Filters runs to allowed ski areas, drops malformed rows, groups by resort; writes one JSON file per resort with more than one run. Input: runs CSV (default `data/runs.csv`), `--ski-areas` (default `data/filtered_ski_areas.csv`), `-o` output dir (default `data/resorts`).
+- **`run_csv_to_json.py`** — Filters runs to allowed ski areas, drops malformed rows, groups by resort; writes one JSON file per resort with more than one run. Runs with no ski area tag are assigned to a resort when their (lat, lng) falls inside that resort’s bounding box (from already-tagged runs), so runs like “The Wall” at Kirkwood are included without editing OSM. Input: runs CSV (default `data/runs.csv`), `--ski-areas` (default `data/filtered_ski_areas.csv`), `-o` output dir (default `data/resorts`).
 - **`compute_aggregate_stats.py`** — Reads all `data/resorts/*.json`, computes pitch histograms and per-difficulty percentiles, writes `data/aggregate_stats.json`. No CLI args; paths are relative to repo root.
 - **`run_pipeline.py`** — Runs steps 0–3 in order. Options: `--ski-areas-csv`, `--runs-csv`, `--skip-download`.
 

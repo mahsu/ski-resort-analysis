@@ -5,6 +5,11 @@ Requires a filtered ski-areas CSV (--ski-areas). Filters runs to North America, 
 runs whose ski_area_ids are in the allowed set, applies malformed-run filters, then
 groups by ski_area_names and writes one JSON array per resort with more than one run.
 Geometry is omitted.
+
+Runs with no ski area tag (missing or empty ski_area_ids/ski_area_names) are assigned
+to a resort when their (lat, lng) falls inside that resort's bounding box (computed
+from runs that do have the resort tag). This recovers runs like "The Wall" at Kirkwood
+that exist in OSM at the resort but were not linked to the resort relation.
 """
 
 import argparse
@@ -18,6 +23,8 @@ import pandas as pd
 OUTPUT_DIR = Path("data/resorts")
 INVALID_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
 NA_COUNTRIES = ("United States", "Canada", "Mexico")
+# Buffer (degrees) added to resort bbox when assigning orphan runs by location
+BBOX_BUFFER = 0.005
 
 # Columns to omit from output JSON (still used for filtering/grouping where needed)
 COLUMNS_TO_STRIP = {
@@ -79,6 +86,46 @@ def run_has_allowed_id(row: pd.Series, allowed_ids: set[str]) -> bool:
     return False
 
 
+def build_resort_bboxes(tagged: pd.DataFrame) -> dict[str, tuple[float, float, float, float]]:
+    """From runs with a resort tag, compute (min_lat, max_lat, min_lng, max_lng) per resort, with buffer."""
+    lat = pd.to_numeric(tagged["lat"], errors="coerce")
+    lng = pd.to_numeric(tagged["lng"], errors="coerce")
+    mask = lat.notna() & lng.notna()
+    tagged = tagged.loc[mask].copy()
+    tagged["_lat"] = lat.loc[mask].values
+    tagged["_lng"] = lng.loc[mask].values
+    agg = tagged.groupby("ski_area_names", sort=False).agg(
+        min_lat=("_lat", "min"),
+        max_lat=("_lat", "max"),
+        min_lng=("_lng", "min"),
+        max_lng=("_lng", "max"),
+    )
+    bboxes = {}
+    for resort_name, row in agg.iterrows():
+        bboxes[resort_name] = (
+            row["min_lat"] - BBOX_BUFFER,
+            row["max_lat"] + BBOX_BUFFER,
+            row["min_lng"] - BBOX_BUFFER,
+            row["max_lng"] + BBOX_BUFFER,
+        )
+    return bboxes
+
+
+def assign_orphan_to_resort(
+    lat: float, lng: float, bboxes: dict[str, tuple[float, float, float, float]]
+) -> str | None:
+    """If (lat, lng) lies in one or more resort bboxes, return resort with smallest bbox; else None."""
+    containing = []
+    for resort_name, (min_lat, max_lat, min_lng, max_lng) in bboxes.items():
+        if min_lat <= lat <= max_lat and min_lng <= lng <= max_lng:
+            area = (max_lat - min_lat) * (max_lng - min_lng)
+            containing.append((resort_name, area))
+    if not containing:
+        return None
+    containing.sort(key=lambda x: x[1])
+    return containing[0][0]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
@@ -118,13 +165,7 @@ def main() -> None:
     df = df.loc[df["countries"].isin(NA_COUNTRIES)].copy()
     df = df.loc[df["uses"] == "downhill"]
 
-    # Only runs belonging to allowed ski areas
-    df = df.loc[df.apply(lambda row: run_has_allowed_id(row, allowed_ids), axis=1)]
-
-    # Require non-empty ski_area_names
-    df = df.loc[df["ski_area_names"].notna() & (df["ski_area_names"].str.strip() != "")]
-
-    # Malformed run filters
+    # Malformed run filters (apply to all runs before splitting tagged vs orphan)
     avg_pitch = pd.to_numeric(df["average_pitch_%"], errors="coerce")
     max_pitch = pd.to_numeric(df["max_pitch_%"], errors="coerce")
     df = df.loc[avg_pitch.notna() & max_pitch.notna()]
@@ -138,6 +179,28 @@ def main() -> None:
     # - expert -> black in source, but app uses grey for "Expert"; remap so Expert shows data
     df = df.copy()
     df.loc[difficulty == "expert", "color"] = "grey"
+
+    # Tagged: runs that belong to an allowed ski area and have a resort name
+    has_allowed_id = df.apply(lambda row: run_has_allowed_id(row, allowed_ids), axis=1)
+    has_resort_name = df["ski_area_names"].notna() & (df["ski_area_names"].astype(str).str.strip() != "")
+    tagged_mask = has_allowed_id & has_resort_name
+    df_tagged = df.loc[tagged_mask].copy()
+
+    # Orphan runs (no resort tag): assign to a resort when (lat, lng) falls inside that resort's bbox
+    bboxes = build_resort_bboxes(df_tagged)
+    df_orphans = df.loc[~tagged_mask].copy()
+    lat_n = pd.to_numeric(df_orphans["lat"], errors="coerce")
+    lng_n = pd.to_numeric(df_orphans["lng"], errors="coerce")
+    df_orphans = df_orphans.loc[lat_n.notna() & lng_n.notna()].copy()
+    assigned = df_orphans.apply(
+        lambda row: assign_orphan_to_resort(float(row["lat"]), float(row["lng"]), bboxes),
+        axis=1,
+    )
+    df_orphans = df_orphans.loc[assigned.notna()].copy()
+    df_orphans["ski_area_names"] = assigned.loc[assigned.notna()]
+
+    # Combine tagged runs and geographically assigned orphans, then group by resort
+    df = pd.concat([df_tagged, df_orphans], ignore_index=True)
 
     # Drop geometry column
     if "geometry" in df.columns:
