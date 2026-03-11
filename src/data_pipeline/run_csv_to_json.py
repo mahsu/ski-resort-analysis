@@ -132,6 +132,13 @@ def main() -> None:
     difficulty = df["difficulty"].fillna("").astype(str).str.strip().str.lower()
     df = df.loc[(difficulty != "freeride") & (difficulty != "")]
 
+    # Normalize color for app difficulty labels. Source data (OpenSkiMap/OSM) mapping:
+    # - advanced -> black (correct; app "Advanced") — no change
+    # - extreme -> orange (correct; app "Extreme") — no change
+    # - expert -> black in source, but app uses grey for "Expert"; remap so Expert shows data
+    df = df.copy()
+    df.loc[difficulty == "expert", "color"] = "grey"
+
     # Drop geometry column
     if "geometry" in df.columns:
         df = df.drop(columns=["geometry"])
