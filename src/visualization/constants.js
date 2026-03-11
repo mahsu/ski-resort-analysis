@@ -18,6 +18,9 @@ export const PITCH_FIELDS = {
   max_pitch: "max_pitch_%",
 };
 
+export const STEEPNESS_INDEX_TOOLTIP =
+  "Ranks how steep the resort is compared with tracked resorts based on run length-weighted average and max pitch. Higher scores mean steeper terrain.";
+
 // Single source of truth for difficulty color hex values (used by both the
 // d3 color scale and the legend swatches, previously duplicated as SWATCH).
 // Advanced (black diamond) is a dark slate; theme backgrounds are lightened so it has contrast.

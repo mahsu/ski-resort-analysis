@@ -510,7 +510,6 @@ body {
   font-size: var(--text-sm);
   border: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
-  overflow: hidden;
 }
 
 .stat-card + .stat-card {
@@ -643,6 +642,61 @@ body {
   border-radius: 99px;
   background: linear-gradient(90deg, var(--accent) 0%, var(--text) 100%);
   transition: width 0.35s ease;
+}
+
+/* Steepness index info tooltip */
+.stat-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  margin-left: 2px;
+}
+
+.stat-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-subtle);
+  background: transparent;
+  color: var(--text-subtle);
+  font-size: 9px;
+  font-weight: var(--weight-semibold);
+  font-style: normal;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.stat-info-bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 10%;
+  transform: translateX(-10%);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  color: var(--text);
+  width: max-content;
+  max-width: min(210px, calc(100vw - 32px));
+  white-space: normal;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.1s ease, visibility 0.1s ease;
+  pointer-events: none;
+  z-index: var(--z-tooltip);
+}
+
+.stat-info-trigger:hover .stat-info-bubble,
+.stat-info-trigger:focus-within .stat-info-bubble {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* ── Insight cards ─────────────────────────────────────────────────────────── */
