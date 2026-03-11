@@ -51,6 +51,74 @@ function buildMultiBinHtml(binLabel, entries) {
 
 // ── Run detail modal ─────────────────────────────────────────────────────────
 
+// Numeric rank for difficulty sort: easiest → hardest
+const DIFFICULTY_RANK = { green: 0, blue: 1, black: 2, grey: 3, orange: 4 };
+
+const MODAL_COLUMNS = [
+  {
+    key: "name",
+    label: "Run",
+    defaultDir: 1,
+    isDefault: false,
+    sortValue: (r) => r.name.toLowerCase(),
+  },
+  {
+    key: "pitch",
+    label: null,
+    defaultDir: -1,
+    isDefault: true,
+    sortValue: (r) => r.pitch,
+  },
+  {
+    key: "difficulty",
+    label: "Difficulty",
+    defaultDir: 1,
+    isDefault: false,
+    sortValue: (r) => {
+      const rank = DIFFICULTY_RANK[r.color] ?? 99;
+      return rank * 1e6 - r.pitch;
+    },
+  },
+];
+
+let modalInitialized = false;
+let modalRows = [];
+let modalSort = (() => {
+  const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
+  return { col: defaultCol.key, dir: defaultCol.defaultDir };
+})();
+
+function renderModalTable() {
+  const tbody = document.getElementById("modal-tbody");
+  if (!tbody) return;
+
+  // Update header sort indicators
+  document.querySelectorAll(".modal-table th[data-sort-col]").forEach((th) => {
+    const col = th.dataset.sortCol;
+    const isActive = col === modalSort.col;
+    th.classList.toggle("sort-active", isActive);
+    th.dataset.sortDir = isActive ? (modalSort.dir === 1 ? "asc" : "desc") : "";
+  });
+
+  const col = MODAL_COLUMNS.find((c) => c.key === modalSort.col);
+  const sorted = [...modalRows].sort((a, b) => {
+    const av = col.sortValue(a);
+    const bv = col.sortValue(b);
+    return modalSort.dir * (av < bv ? -1 : av > bv ? 1 : 0);
+  });
+
+  tbody.innerHTML = "";
+  sorted.forEach((r) => {
+    const tr = document.createElement("tr");
+    const hex = COLOR_HEX[r.color] || COLOR_HEX.grey;
+    tr.innerHTML =
+      `<td>${r.name}</td>` +
+      `<td>${r.pitch.toFixed(1)}%</td>` +
+      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
 function initModal() {
   const overlay = document.getElementById("run-modal");
   const closeBtn = document.getElementById("modal-close");
@@ -69,9 +137,20 @@ function initModal() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
   });
-}
 
-let modalInitialized = false;
+  document.querySelectorAll(".modal-table th[data-sort-col]").forEach((th) => {
+    th.addEventListener("click", () => {
+      const clickedKey = th.dataset.sortCol;
+      if (modalSort.col === clickedKey) {
+        modalSort.dir *= -1;
+      } else {
+        const col = MODAL_COLUMNS.find((c) => c.key === clickedKey);
+        modalSort = { col: clickedKey, dir: col.defaultDir };
+      }
+      renderModalTable();
+    });
+  });
+}
 
 function showRunModal(runs, binLo, binHi, metric, resortName) {
   if (!modalInitialized) { initModal(); modalInitialized = true; }
@@ -79,10 +158,9 @@ function showRunModal(runs, binLo, binHi, metric, resortName) {
   const overlay = document.getElementById("run-modal");
   const titleEl = document.getElementById("modal-title");
   const pitchHeader = document.getElementById("modal-pitch-header");
-  const tbody = document.getElementById("modal-tbody");
 
   const field = PITCH_FIELDS[metric];
-  const filtered = runs
+  modalRows = runs
     .filter((r) => {
       const v = r[field];
       if (v == null || typeof v !== "number") return false;
@@ -94,8 +172,10 @@ function showRunModal(runs, binLo, binHi, metric, resortName) {
       pitch: r[field] * 100,
       color: (r.color || "grey").toLowerCase(),
       difficulty: r.difficulty || "unknown",
-    }))
-    .sort((a, b) => b.pitch - a.pitch);
+    }));
+
+  const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
+  modalSort = { col: defaultCol.key, dir: defaultCol.defaultDir };
 
   const isAvg = metric === "average_pitch";
   const binLabel = binLo >= MAX_PITCH ? `≥ ${MAX_PITCH}%` : `${binLo}–${binHi}%`;
@@ -103,16 +183,7 @@ function showRunModal(runs, binLo, binHi, metric, resortName) {
   titleEl.textContent = `${resortName} (${binLabel} ${pitchLabel})`;
   pitchHeader.textContent = isAvg ? "Avg Pitch" : "Max Pitch";
 
-  tbody.innerHTML = "";
-  filtered.forEach((r) => {
-    const tr = document.createElement("tr");
-    const hex = COLOR_HEX[r.color] || COLOR_HEX.grey;
-    tr.innerHTML =
-      `<td>${r.name}</td>` +
-      `<td>${r.pitch.toFixed(1)}%</td>` +
-      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>`;
-    tbody.appendChild(tr);
-  });
+  renderModalTable();
 
   document.querySelector(".modal-body").scrollTop = 0;
   overlay.setAttribute("aria-hidden", "false");

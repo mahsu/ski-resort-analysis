@@ -850,6 +850,41 @@ body {
   flex-shrink: 0;
 }
 
+.modal-table th[data-sort-col] {
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition);
+}
+
+.modal-table th[data-sort-col]:hover {
+  color: var(--text);
+}
+
+.modal-table th[data-sort-col]::after {
+  content: "\21C5"; /* ⇅ */
+  margin-left: var(--space-xxs);
+  opacity: 0.3;
+  font-size: 10px;
+  display: inline-block;
+}
+
+.modal-table th[data-sort-col].sort-active {
+  color: var(--text);
+}
+
+.modal-table th[data-sort-col].sort-active::after {
+  opacity: 1;
+  color: var(--accent, #4f46e5);
+}
+
+.modal-table th[data-sort-col].sort-active[data-sort-dir="asc"]::after {
+  content: "\2191"; /* ↑ */
+}
+
+.modal-table th[data-sort-col].sort-active[data-sort-dir="desc"]::after {
+  content: "\2193"; /* ↓ */
+}
+
 /* ── D3 axis ───────────────────────────────────────────────────────────────── */
 .axis line,
 .axis path {
