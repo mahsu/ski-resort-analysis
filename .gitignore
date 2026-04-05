@@ -15,7 +15,7 @@ build/
 *.json
 !package.json
 !package-lock.json
-!config/deploy.json
+!config/deploy.example.json
 *.geojson
 *.csv
 *.gpkg*
