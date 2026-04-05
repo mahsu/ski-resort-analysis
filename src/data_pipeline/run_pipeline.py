@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SCRIPT_DIR.parent
+REPO_ROOT = SCRIPT_DIR.parent.parent  # src/data_pipeline → repo root
 DEPLOY_CONFIG = REPO_ROOT / "config" / "deploy.json"
 DEFAULT_SKI_AREAS_CSV = Path("data/ski_areas.csv")
 DEFAULT_RUNS_CSV = Path("data/runs.csv")
