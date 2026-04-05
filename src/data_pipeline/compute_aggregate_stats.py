@@ -39,6 +39,7 @@ def main() -> None:
         raise SystemExit(f"Resorts directory not found: {resorts_dir}")
 
     all_runs: list[dict] = []
+    all_run_steepness_raw: list[float] = []
     by_color: dict[str, list[float]] = {c: [] for c in COLORS}
     by_color_max: dict[str, list[float]] = {c: [] for c in COLORS}
     hist_avg: dict[tuple[float, float], int] = {}
@@ -90,6 +91,7 @@ def main() -> None:
                 weight = r.get("inclined_length_m") or 0
                 steepness_weighted_sum += run_steepness(r) * weight
                 steepness_total_weight += weight
+                all_run_steepness_raw.append(run_steepness(r))
 
         resort_steepness_raw[resort_name] = (
             steepness_weighted_sum / steepness_total_weight if steepness_total_weight else 0.0
@@ -136,6 +138,23 @@ def main() -> None:
         c: percentiles(by_color_max[c], (10, 25, 50, 75, 90)) for c in COLORS
     }
 
+    # 101 breakpoints (p0..p100) for run-level steepness, used by the frontend
+    # to binary-search a run's raw steepness value into a 0-100 percentile score.
+    def run_steepness_breakpoints(raw_values: list[float]) -> list[float]:
+        if not raw_values:
+            return [0.0] * 101
+        s = sorted(raw_values)
+        n = len(s)
+        result = []
+        for p in range(101):
+            idx = (p / 100) * (n - 1) if n > 1 else 0
+            i, frac = int(idx), idx % 1
+            val = s[i] + frac * (s[min(i + 1, n - 1)] - s[i])
+            result.append(round(val, 6))
+        return result
+
+    run_steepness_percentiles = run_steepness_breakpoints(all_run_steepness_raw)
+
     def hist_to_list(h: dict[tuple[float, float], int]) -> list[dict]:
         return [
             {"bin_start": lo, "bin_end": hi, "count": h.get((lo, hi), 0)}
@@ -163,6 +182,7 @@ def main() -> None:
         },
         "resort_medians_by_color": [resort_medians[n] for n in resort_names],
         "resort_steepness": resort_steepness_list,
+        "run_steepness_percentiles": run_steepness_percentiles,
         "total_runs": len(all_runs),
     }
 
