@@ -1,4 +1,4 @@
-import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS } from "./constants.js";
+import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS, RUN_STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { capAggregateBins, binRuns } from "./data.js";
 
 // ── Tooltip helpers ──────────────────────────────────────────────────────────
@@ -54,6 +54,22 @@ function buildMultiBinHtml(binLabel, entries) {
 // Numeric rank for difficulty sort: easiest → hardest
 const DIFFICULTY_RANK = { green: 0, blue: 1, black: 2, grey: 3, orange: 4 };
 
+// Binary search into the 101-element percentile breakpoints array to map a
+// raw steepness value to a 0-100 percentile score.
+function runSteepnessPercentile(raw, breakpoints) {
+  if (!breakpoints || breakpoints.length < 2) return null;
+  if (raw <= breakpoints[0]) return 0;
+  if (raw >= breakpoints[100]) return 100;
+  let lo = 0, hi = 100;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >> 1;
+    if (breakpoints[mid] <= raw) lo = mid;
+    else hi = mid;
+  }
+  const t = (raw - breakpoints[lo]) / (breakpoints[hi] - breakpoints[lo]);
+  return Math.round(lo + t);
+}
+
 const MODAL_COLUMNS = [
   {
     key: "name",
@@ -78,6 +94,13 @@ const MODAL_COLUMNS = [
       const rank = DIFFICULTY_RANK[r.color] ?? 99;
       return rank * 1e6 - r.pitch;
     },
+  },
+  {
+    key: "steepness",
+    label: "Steepness",
+    defaultDir: -1,
+    isDefault: false,
+    sortValue: (r) => r.steepnessIdx ?? -1,
   },
 ];
 
@@ -111,10 +134,17 @@ function renderModalTable() {
   sorted.forEach((r) => {
     const tr = document.createElement("tr");
     const hex = COLOR_HEX[r.color] || COLOR_HEX.grey;
+    const steepnessCell = r.steepnessIdx != null
+      ? `<td class="modal-steepness-cell">` +
+        `<span class="modal-steepness-score">${r.steepnessIdx}</span>` +
+        `<div class="steepness-track modal-steepness-track"><div class="steepness-fill" style="width:${r.steepnessIdx}%"></div></div>` +
+        `</td>`
+      : `<td>—</td>`;
     tr.innerHTML =
       `<td>${r.name}</td>` +
       `<td>${r.pitch.toFixed(1)}%</td>` +
-      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>`;
+      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>` +
+      steepnessCell;
     tbody.appendChild(tr);
   });
 }
@@ -123,6 +153,9 @@ function initModal() {
   const overlay = document.getElementById("run-modal");
   const closeBtn = document.getElementById("modal-close");
   if (!overlay) return;
+
+  const tooltipEl = document.getElementById("run-steepness-tooltip");
+  if (tooltipEl) tooltipEl.textContent = RUN_STEEPNESS_INDEX_TOOLTIP;
 
   function close() {
     overlay.classList.remove("is-open");
@@ -152,7 +185,7 @@ function initModal() {
   });
 }
 
-function showRunModal(runs, binLo, binHi, metric, resortName) {
+function showRunModal(runs, binLo, binHi, metric, resortName, aggregate) {
   if (!modalInitialized) { initModal(); modalInitialized = true; }
 
   const overlay = document.getElementById("run-modal");
@@ -160,6 +193,7 @@ function showRunModal(runs, binLo, binHi, metric, resortName) {
   const pitchHeader = document.getElementById("modal-pitch-header");
 
   const field = PITCH_FIELDS[metric];
+  const breakpoints = aggregate?.run_steepness_percentiles ?? null;
   modalRows = runs
     .filter((r) => {
       const v = r[field];
@@ -167,12 +201,18 @@ function showRunModal(runs, binLo, binHi, metric, resortName) {
       const pct = Math.min(v * 100, MAX_PITCH);
       return pct >= binLo && pct < binHi;
     })
-    .map((r) => ({
-      name: r.name,
-      pitch: r[field] * 100,
-      color: (r.color || "grey").toLowerCase(),
-      difficulty: r.difficulty || "unknown",
-    }));
+    .map((r) => {
+      const avg = r["average_pitch_%"] ?? null;
+      const max = r["max_pitch_%"] ?? null;
+      const rawSteepness = avg != null && max != null ? 0.6 * avg + 0.4 * max : null;
+      return {
+        name: r.name,
+        pitch: r[field] * 100,
+        color: (r.color || "grey").toLowerCase(),
+        difficulty: r.difficulty || "unknown",
+        steepnessIdx: rawSteepness != null ? runSteepnessPercentile(rawSteepness, breakpoints) : null,
+      };
+    });
 
   const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
   modalSort = { col: defaultCol.key, dir: defaultCol.defaultDir };
@@ -408,7 +448,7 @@ export function drawChart(aggregate, resortCache, state) {
             .on("click", (event, d) => {
               hideTooltip(tooltipEl);
               const runs = key === "A" ? runsA : runsB;
-              if (runs) showRunModal(runs, d.lo, d.hi, metric, name);
+              if (runs) showRunModal(runs, d.lo, d.hi, metric, name, aggregate);
             })
             .style("cursor", "pointer");
         });
@@ -505,7 +545,7 @@ export function drawChart(aggregate, resortCache, state) {
         .on("click", (event, d) => {
           hideTooltip(tooltipEl);
           const runs = seriesKey === "A" ? runsA : runsB;
-          if (runs && resortLabel) showRunModal(runs, d.lo, d.hi, metric, resortLabel);
+          if (runs && resortLabel) showRunModal(runs, d.lo, d.hi, metric, resortLabel, aggregate);
         })
         .style("cursor", "pointer");
     });

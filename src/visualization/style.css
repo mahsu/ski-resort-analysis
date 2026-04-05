@@ -795,7 +795,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  width: min(520px, calc(100vw - 32px));
+  width: min(680px, calc(100vw - 32px));
   max-height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
@@ -937,6 +937,31 @@ body {
 
 .modal-table th[data-sort-col].sort-active[data-sort-dir="desc"]::after {
   content: "\2193"; /* ↓ */
+}
+
+/* ── Steepness column in run modal ─────────────────────────────────────────── */
+.modal-steepness-cell {
+  min-width: 80px;
+}
+
+.modal-steepness-score {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  display: block;
+}
+
+.modal-steepness-track {
+  margin: 3px 0 0;
+}
+
+/* Tooltip bubble inside sticky modal table header */
+.modal-table .stat-info-bubble {
+  bottom: auto;
+  top: calc(100% + 6px);
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 /* ── D3 axis ───────────────────────────────────────────────────────────────── */
