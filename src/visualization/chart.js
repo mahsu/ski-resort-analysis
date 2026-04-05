@@ -106,6 +106,7 @@ const MODAL_COLUMNS = [
 
 let modalInitialized = false;
 let modalRows = [];
+let modalSearchQuery = "";
 let modalSort = (() => {
   const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
   return { col: defaultCol.key, dir: defaultCol.defaultDir };
@@ -123,14 +124,25 @@ function renderModalTable() {
     th.dataset.sortDir = isActive ? (modalSort.dir === 1 ? "asc" : "desc") : "";
   });
 
+  const q = modalSearchQuery.trim().toLowerCase();
+  const filtered = q
+    ? modalRows.filter((r) => (r.name || "").toLowerCase().includes(q))
+    : modalRows;
+
   const col = MODAL_COLUMNS.find((c) => c.key === modalSort.col);
-  const sorted = [...modalRows].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const av = col.sortValue(a);
     const bv = col.sortValue(b);
     return modalSort.dir * (av < bv ? -1 : av > bv ? 1 : 0);
   });
 
   tbody.innerHTML = "";
+  if (sorted.length === 0 && modalRows.length > 0 && q) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="4" class="modal-empty">No runs match your search.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
   sorted.forEach((r) => {
     const tr = document.createElement("tr");
     const hex = COLOR_HEX[r.color] || COLOR_HEX.grey;
@@ -170,6 +182,14 @@ function initModal() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
   });
+
+  const searchInput = document.getElementById("modal-run-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      modalSearchQuery = searchInput.value;
+      renderModalTable();
+    });
+  }
 
   document.querySelectorAll(".modal-table th[data-sort-col]").forEach((th) => {
     th.addEventListener("click", () => {
@@ -230,6 +250,10 @@ export function showRunModal(runs, binLo, binHi, metric, resortName, aggregate, 
       : `${binLo}–${binHi}%`;
   titleEl.textContent = binLabel ? `${resortName} (${binLabel} ${pitchLabel})` : resortName;
   pitchHeader.textContent = isAvg ? "Avg Pitch" : "Max Pitch";
+
+  modalSearchQuery = "";
+  const searchEl = document.getElementById("modal-run-search");
+  if (searchEl) searchEl.value = "";
 
   renderModalTable();
 
