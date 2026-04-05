@@ -185,7 +185,7 @@ function initModal() {
   });
 }
 
-function showRunModal(runs, binLo, binHi, metric, resortName, aggregate) {
+export function showRunModal(runs, binLo, binHi, metric, resortName, aggregate, initialSort) {
   if (!modalInitialized) { initModal(); modalInitialized = true; }
 
   const overlay = document.getElementById("run-modal");
@@ -214,13 +214,21 @@ function showRunModal(runs, binLo, binHi, metric, resortName, aggregate) {
       };
     });
 
-  const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
-  modalSort = { col: defaultCol.key, dir: defaultCol.defaultDir };
+  if (initialSort) {
+    modalSort = initialSort;
+  } else {
+    const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
+    modalSort = { col: defaultCol.key, dir: defaultCol.defaultDir };
+  }
 
   const isAvg = metric === "average_pitch";
-  const binLabel = binLo >= MAX_PITCH ? `≥ ${MAX_PITCH}%` : `${binLo}–${binHi}%`;
   const pitchLabel = isAvg ? "Avg Pitch" : "Max Pitch";
-  titleEl.textContent = `${resortName} (${binLabel} ${pitchLabel})`;
+  const binLabel = binHi === Infinity
+    ? null
+    : binLo >= MAX_PITCH
+      ? `≥ ${MAX_PITCH}%`
+      : `${binLo}–${binHi}%`;
+  titleEl.textContent = binLabel ? `${resortName} (${binLabel} ${pitchLabel})` : resortName;
   pitchHeader.textContent = isAvg ? "Avg Pitch" : "Max Pitch";
 
   renderModalTable();

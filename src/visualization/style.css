@@ -605,6 +605,16 @@ body {
   flex-shrink: 0;
 }
 
+.view-all-runs-link {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--text-sm);
+  text-align: right;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .stat-diff-count {
   font-weight: var(--weight-semibold);
   color: var(--text);

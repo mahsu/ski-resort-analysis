@@ -1,5 +1,6 @@
 import { COLORS, COLOR_LABELS, COLOR_HEX, RESORT_COLORS, STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { getRunsWithPitch } from "./data.js";
+import { showRunModal } from "./chart.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -123,7 +124,13 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
     `<div class="stat-row"><span class="stat-label">Runs ≥ 40% pitch</span><span class="stat-value">${pct40 != null ? pct40 + "%" : "—"}</span></div>` +
     `<div class="stat-row"><span class="stat-label">By difficulty</span></div>` +
     `<div class="stat-difficulty-grid">${diffItems}</div>` +
+    `<a href="#" class="view-all-runs-link" data-stat-key="${badge}">View all runs</a>` +
     `</div>`;
+
+  el.querySelector(".view-all-runs-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    showRunModal(runs, 0, Infinity, state.metric, resortName, aggregate, { col: "name", dir: 1 });
+  });
 }
 
 function percentileRank(sortedArr, value) {
