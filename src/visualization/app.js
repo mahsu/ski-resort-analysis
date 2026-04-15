@@ -56,6 +56,7 @@ function syncUrlParams() {
   if (state.metric !== "average_pitch") params.set("metric", "max");
   if (state.chartMode !== "bars") params.set("chart", "lines");
   if (!state.showAggregate) params.set("aggregate", "0");
+  if (state.normalizeY) params.set("norm", "1");
   history.replaceState(null, "", params.toString() ? "?" + params.toString() : location.pathname);
 }
 
@@ -122,6 +123,11 @@ function init() {
         $("show-aggregate").checked = false;
       }
 
+      if (params.get("norm") === "1") {
+        state.normalizeY = true;
+        $("normalize-y").checked = true;
+      }
+
       $("show-aggregate").addEventListener("change", (e) => {
         state.showAggregate = e.target.checked;
         syncUrlParams();
@@ -129,6 +135,7 @@ function init() {
       });
       $("normalize-y").addEventListener("change", (e) => {
         state.normalizeY = e.target.checked;
+        syncUrlParams();
         update();
       });
 
