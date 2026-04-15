@@ -1,5 +1,5 @@
 import { loadAggregate, loadResort, setupResortCombobox } from "./data.js";
-import { drawChart, bindToggle } from "./chart.js";
+import { drawChart, bindToggle, initRunModalSteepnessHeader } from "./chart.js";
 import { renderLegend, renderResortLegend, renderStatCard, renderInsights } from "./ui.js";
 
 let aggregate = null;
@@ -76,6 +76,7 @@ function handleResize() {
 }
 
 function init() {
+  initRunModalSteepnessHeader();
   window.addEventListener("resize", handleResize);
 
   loadAggregate()

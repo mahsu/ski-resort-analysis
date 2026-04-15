@@ -1,4 +1,13 @@
 import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS, RUN_STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
+import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
+
+/** Fills the run modal steepness column header (shared tooltip markup). Safe to call once at startup. */
+export function initRunModalSteepnessHeader() {
+  const steepnessTh = document.getElementById("modal-steepness-th");
+  if (steepnessTh) {
+    steepnessTh.innerHTML = `Steepness ${steepnessInfoTriggerHtml(RUN_STEEPNESS_INDEX_TOOLTIP)}`;
+  }
+}
 import { capAggregateBins, binRuns } from "./data.js";
 
 // ── Tooltip helpers ──────────────────────────────────────────────────────────
@@ -165,9 +174,6 @@ function initModal() {
   const overlay = document.getElementById("run-modal");
   const closeBtn = document.getElementById("modal-close");
   if (!overlay) return;
-
-  const tooltipEl = document.getElementById("run-steepness-tooltip");
-  if (tooltipEl) tooltipEl.textContent = RUN_STEEPNESS_INDEX_TOOLTIP;
 
   function close() {
     overlay.classList.remove("is-open");
