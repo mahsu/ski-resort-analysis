@@ -247,7 +247,7 @@ body {
   position: absolute;
   top: calc(100% + var(--space-xxs));
   left: 0;
-  min-width: 100%;
+  right: 0;
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1018,6 +1018,7 @@ body {
   left: auto;
   right: 0;
   transform: none;
+  text-transform: none;
 }
 
 /* ── D3 axis ───────────────────────────────────────────────────────────────── */

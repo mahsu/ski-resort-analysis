@@ -80,9 +80,10 @@ export function setupResortCombobox(inputId, resortNames, onChange) {
   let activeIndex = -1;
 
   function getMatches(query) {
-    if (!query) return [];
-    const q = query.toLowerCase();
-    return resortNames.filter((n) => n.toLowerCase().startsWith(q));
+    const q = (query || "").trim();
+    if (!q) return [...resortNames];
+    const ql = q.toLowerCase();
+    return resortNames.filter((n) => n.toLowerCase().startsWith(ql));
   }
 
   function setActiveIndex(idx, items) {
@@ -139,11 +140,7 @@ export function setupResortCombobox(inputId, resortNames, onChange) {
       clearBtn.hidden = true;
       onChange(null);
     }
-    if (input.value) {
-      renderDropdown(getMatches(input.value));
-    } else {
-      dropdown.hidden = true;
-    }
+    renderDropdown(getMatches(input.value));
   });
 
   input.addEventListener("keydown", (e) => {
@@ -165,7 +162,7 @@ export function setupResortCombobox(inputId, resortNames, onChange) {
   });
 
   input.addEventListener("focus", () => {
-    if (!selectedName && input.value) {
+    if (!selectedName) {
       renderDropdown(getMatches(input.value));
     }
   });
