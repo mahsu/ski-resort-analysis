@@ -42,10 +42,16 @@
           <ul class="resort-dropdown" id="resort-a-dropdown" role="listbox" hidden></ul>
         </div>
         <label class="resort-select-label"><span class="resort-dot b"></span> Resort B</label>
-        <div class="resort-combobox" id="resort-b-wrap">
-          <input type="text" id="resort-b" autocomplete="off" spellcheck="false" placeholder="Search resort…" aria-label="Select second resort" aria-autocomplete="list" aria-haspopup="listbox">
-          <button class="resort-clear" id="resort-b-clear" aria-label="Clear resort" hidden>✕</button>
-          <ul class="resort-dropdown" id="resort-b-dropdown" role="listbox" hidden></ul>
+        <div class="resort-field-group">
+          <div class="resort-combobox" id="resort-b-wrap">
+            <input type="text" id="resort-b" autocomplete="off" spellcheck="false" placeholder="Search resort…" aria-label="Select second resort" aria-autocomplete="list" aria-haspopup="listbox">
+            <button class="resort-clear" id="resort-b-clear" aria-label="Clear resort" hidden>✕</button>
+            <ul class="resort-dropdown" id="resort-b-dropdown" role="listbox" hidden></ul>
+          </div>
+          <span class="stat-info-trigger random-pair-tooltip">
+            <button type="button" id="random-pair-btn" class="btn-random-pair" aria-label="Select two random resorts for comparison">🎲</button>
+            <span class="stat-info-bubble" role="tooltip" id="random-pair-tooltip">Randomly pick two resorts to compare.</span>
+          </span>
         </div>
       </div>
       <div class="control-row">
