@@ -16,6 +16,31 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+/** Pick two different resort names; null if fewer than two resorts exist. */
+function pickTwoDistinctResorts(names) {
+  const n = names.length;
+  if (n < 2) return null;
+  const i = Math.floor(Math.random() * n);
+  const j = Math.floor(Math.random() * (n - 1));
+  const j2 = j < i ? j : j + 1;
+  return [names[i], names[j2]];
+}
+
+/** Prefer a new (A,B) when possible so repeat clicks feel responsive. */
+function pickRandomPairForUi(names, prevA, prevB) {
+  const pair = pickTwoDistinctResorts(names);
+  if (!pair) return null;
+  let [a, b] = pair;
+  if (names.length <= 2) return [a, b];
+  for (let attempt = 0; attempt < 32; attempt++) {
+    if (a !== prevA || b !== prevB) break;
+    const next = pickTwoDistinctResorts(names);
+    if (!next) break;
+    [a, b] = next;
+  }
+  return [a, b];
+}
+
 function update() {
   drawChart(aggregate, resortCache, state);
   renderResortLegend(state);
@@ -110,6 +135,22 @@ function init() {
       if (paramA && validNames.has(paramA)) comboA.select(paramA);
       if (paramB && validNames.has(paramB)) comboB.select(paramB);
       if (!hasPreselect) update();
+
+      const randomBtn = $("random-pair-btn");
+      const setRandomEnabled = () => {
+        const ok = data.resort_names.length >= 2;
+        randomBtn.disabled = !ok;
+        randomBtn.title = ok ? "" : "Need at least two resorts in the dataset";
+      };
+      setRandomEnabled();
+      randomBtn.addEventListener("click", () => {
+        const names = data.resort_names;
+        const picked = pickRandomPairForUi(names, state.resortA, state.resortB);
+        if (!picked) return;
+        const [nameA, nameB] = picked;
+        comboA.select(nameA);
+        comboB.select(nameB);
+      });
     })
     .catch((err) => {
       console.error(err);

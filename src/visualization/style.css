@@ -164,6 +164,55 @@ body {
   gap: var(--space-lg);
 }
 
+.resort-field-group {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.resort-field-group .resort-combobox {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Reuse .stat-info-bubble for hover tooltip; stretch wrapper to match combobox row */
+.stat-info-trigger.random-pair-tooltip {
+  margin-left: 0;
+  align-self: stretch;
+  align-items: stretch;
+}
+
+.btn-random-pair {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  align-self: stretch;
+  min-width: 2.75rem;
+  padding: 0 var(--space-xs);
+  box-sizing: border-box;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+
+.btn-random-pair:hover:not(:disabled) {
+  border-color: var(--text-subtle);
+  color: var(--text);
+  background: var(--bg-elevated);
+}
+
+.btn-random-pair:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* Resort select labels */
 .resort-select-label {
   display: inline-flex;
@@ -704,9 +753,14 @@ body {
 }
 
 .stat-info-trigger:hover .stat-info-bubble,
-.stat-info-trigger:focus-within .stat-info-bubble {
+.stat-info-trigger:not(.random-pair-tooltip):focus-within .stat-info-bubble {
   opacity: 1;
   visibility: visible;
+}
+
+.stat-info-trigger.random-pair-tooltip .stat-info-bubble {
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* ── Insight cards ─────────────────────────────────────────────────────────── */
