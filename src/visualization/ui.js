@@ -1,4 +1,5 @@
 import { COLORS, COLOR_LABELS, COLOR_HEX, RESORT_COLORS, STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
+import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { getRunsWithPitch } from "./data.js";
 import { showRunModal } from "./chart.js";
 
@@ -101,11 +102,7 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
     : null;
   const steepnessHtml = steepnessScore != null
     ? `<div class="stat-row steepness-row">` +
-      `<span class="stat-label">Steepness index ` +
-      `<span class="stat-info-trigger" tabindex="0" aria-label="What is steepness index?">` +
-      `<span class="stat-info-icon" aria-hidden="true">i</span>` +
-      `<span class="stat-info-bubble" role="tooltip">${STEEPNESS_INDEX_TOOLTIP}</span>` +
-      `</span></span>` +
+      `<span class="stat-label">Steepness index ${steepnessInfoTriggerHtml(STEEPNESS_INDEX_TOOLTIP)}</span>` +
       `<span class="stat-value steepness-score">${steepnessScore}<span class="steepness-denom"> / 100</span></span>` +
       `</div>` +
       `<div class="steepness-track">` +
