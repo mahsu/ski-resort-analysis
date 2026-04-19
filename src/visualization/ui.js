@@ -1,7 +1,7 @@
 import { COLORS, COLOR_LABELS, COLOR_HEX, RESORT_COLORS, STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { getRunsWithPitch } from "./data.js";
-import { showRunModal } from "./chart.js";
+import { showRunModal } from "./run-modal.js";
 import { escapeHtml } from "./sanitize.js";
 
 const $ = (id) => document.getElementById(id);
