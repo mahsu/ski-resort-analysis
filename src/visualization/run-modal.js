@@ -1,6 +1,8 @@
 import { MAX_PITCH, COLOR_HEX, COLOR_LABELS, PITCH_FIELDS, RUN_STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { escapeHtml } from "./sanitize.js";
+import { getMetricMeta } from "./metric-meta.js";
+import { interpolatePercentile } from "./stats.js";
 
 /** Fills the run modal steepness column header (shared tooltip markup). Safe to call once at startup. */
 export function initRunModalSteepnessHeader() {
@@ -12,23 +14,6 @@ export function initRunModalSteepnessHeader() {
 
 // Numeric rank for difficulty sort: easiest → hardest
 const DIFFICULTY_RANK = { green: 0, blue: 1, black: 2, grey: 3, orange: 4 };
-
-// Binary search into the 101-element percentile breakpoints array to map a
-// raw steepness value to a 0-100 percentile score.
-function runSteepnessPercentile(raw, breakpoints) {
-  if (!breakpoints || breakpoints.length < 2) return null;
-  if (raw <= breakpoints[0]) return 0;
-  if (raw >= breakpoints[100]) return 100;
-  let lo = 0;
-  let hi = 100;
-  while (lo < hi - 1) {
-    const mid = (lo + hi) >> 1;
-    if (breakpoints[mid] <= raw) lo = mid;
-    else hi = mid;
-  }
-  const t = (raw - breakpoints[lo]) / (breakpoints[hi] - breakpoints[lo]);
-  return Math.round(lo + t);
-}
 
 const MODAL_COLUMNS = [
   {
@@ -64,39 +49,43 @@ const MODAL_COLUMNS = [
   },
 ];
 
-let modalInitialized = false;
-let modalRows = [];
-let modalSearchQuery = "";
-let modalSort = (() => {
+function getDefaultSort() {
   const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
   return { col: defaultCol.key, dir: defaultCol.defaultDir };
-})();
+}
 
-function renderModalTable() {
+const modalState = {
+  initialized: false,
+  rows: [],
+  searchQuery: "",
+  sort: getDefaultSort(),
+};
+
+function renderModalTable(state) {
   const tbody = document.getElementById("modal-tbody");
   if (!tbody) return;
 
   document.querySelectorAll(".modal-table th[data-sort-col]").forEach((th) => {
     const col = th.dataset.sortCol;
-    const isActive = col === modalSort.col;
+    const isActive = col === state.sort.col;
     th.classList.toggle("sort-active", isActive);
-    th.dataset.sortDir = isActive ? (modalSort.dir === 1 ? "asc" : "desc") : "";
+    th.dataset.sortDir = isActive ? (state.sort.dir === 1 ? "asc" : "desc") : "";
   });
 
-  const q = modalSearchQuery.trim().toLowerCase();
+  const q = state.searchQuery.trim().toLowerCase();
   const filtered = q
-    ? modalRows.filter((r) => (r.name || "").toLowerCase().includes(q))
-    : modalRows;
+    ? state.rows.filter((r) => (r.name || "").toLowerCase().includes(q))
+    : state.rows;
 
-  const col = MODAL_COLUMNS.find((c) => c.key === modalSort.col);
+  const col = MODAL_COLUMNS.find((c) => c.key === state.sort.col);
   const sorted = [...filtered].sort((a, b) => {
     const av = col.sortValue(a);
     const bv = col.sortValue(b);
-    return modalSort.dir * (av < bv ? -1 : av > bv ? 1 : 0);
+    return state.sort.dir * (av < bv ? -1 : av > bv ? 1 : 0);
   });
 
   tbody.innerHTML = "";
-  if (sorted.length === 0 && modalRows.length > 0 && q) {
+  if (sorted.length === 0 && state.rows.length > 0 && q) {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td colspan="4" class="modal-empty">No runs match your search.</td>`;
     tbody.appendChild(tr);
@@ -122,7 +111,7 @@ function renderModalTable() {
   });
 }
 
-function initModal() {
+function initModal(state) {
   const overlay = document.getElementById("run-modal");
   const closeBtn = document.getElementById("modal-close");
   if (!overlay || !closeBtn) return;
@@ -144,29 +133,29 @@ function initModal() {
   const searchInput = document.getElementById("modal-run-search");
   if (searchInput) {
     searchInput.addEventListener("input", () => {
-      modalSearchQuery = searchInput.value;
-      renderModalTable();
+      state.searchQuery = searchInput.value;
+      renderModalTable(state);
     });
   }
 
   document.querySelectorAll(".modal-table th[data-sort-col]").forEach((th) => {
     th.addEventListener("click", () => {
       const clickedKey = th.dataset.sortCol;
-      if (modalSort.col === clickedKey) {
-        modalSort.dir *= -1;
+      if (state.sort.col === clickedKey) {
+        state.sort.dir *= -1;
       } else {
         const col = MODAL_COLUMNS.find((c) => c.key === clickedKey);
-        modalSort = { col: clickedKey, dir: col.defaultDir };
+        state.sort = { col: clickedKey, dir: col.defaultDir };
       }
-      renderModalTable();
+      renderModalTable(state);
     });
   });
 }
 
 export function showRunModal(runs, binLo, binHi, metric, resortName, aggregate, initialSort) {
-  if (!modalInitialized) {
-    initModal();
-    modalInitialized = true;
+  if (!modalState.initialized) {
+    initModal(modalState);
+    modalState.initialized = true;
   }
 
   const overlay = document.getElementById("run-modal");
@@ -177,7 +166,7 @@ export function showRunModal(runs, binLo, binHi, metric, resortName, aggregate, 
 
   const field = PITCH_FIELDS[metric];
   const breakpoints = aggregate?.run_steepness_percentiles ?? null;
-  modalRows = runs
+  modalState.rows = runs
     .filter((r) => {
       const v = r[field];
       if (v == null || typeof v !== "number") return false;
@@ -193,32 +182,30 @@ export function showRunModal(runs, binLo, binHi, metric, resortName, aggregate, 
         pitch: r[field] * 100,
         color: (r.color || "grey").toLowerCase(),
         difficulty: r.difficulty || "unknown",
-        steepnessIdx: rawSteepness != null ? runSteepnessPercentile(rawSteepness, breakpoints) : null,
+        steepnessIdx: rawSteepness != null ? interpolatePercentile(rawSteepness, breakpoints) : null,
       };
     });
 
   if (initialSort) {
-    modalSort = initialSort;
+    modalState.sort = initialSort;
   } else {
-    const defaultCol = MODAL_COLUMNS.find((c) => c.isDefault);
-    modalSort = { col: defaultCol.key, dir: defaultCol.defaultDir };
+    modalState.sort = getDefaultSort();
   }
 
-  const isAvg = metric === "average_pitch";
-  const pitchLabel = isAvg ? "Avg Pitch" : "Max Pitch";
+  const metricMeta = getMetricMeta(metric);
   const binLabel = binHi === Infinity
     ? null
     : binLo >= MAX_PITCH
       ? `≥ ${MAX_PITCH}%`
       : `${binLo}–${binHi}%`;
-  titleEl.textContent = binLabel ? `${resortName} (${binLabel} ${pitchLabel})` : resortName;
-  pitchHeader.textContent = isAvg ? "Avg Pitch" : "Max Pitch";
+  titleEl.textContent = binLabel ? `${resortName} (${binLabel} ${metricMeta.shortLabel})` : resortName;
+  pitchHeader.textContent = metricMeta.shortLabel;
 
-  modalSearchQuery = "";
+  modalState.searchQuery = "";
   const searchEl = document.getElementById("modal-run-search");
   if (searchEl) searchEl.value = "";
 
-  renderModalTable();
+  renderModalTable(modalState);
 
   modalBody.scrollTop = 0;
   overlay.setAttribute("aria-hidden", "false");

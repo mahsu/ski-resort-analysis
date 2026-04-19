@@ -57,7 +57,10 @@ This overwrites `data/aggregate_stats.json`. Reload the visualization page to us
 | `index.html`   | Page structure, controls, chart container, sidebar                       |
 | `style.css`    | Dark theme, difficulty colors, layout                                    |
 | `app.js`       | App init, state management, URL param sync, event wiring                 |
-| `chart.js`     | D3 histogram and smooth-lines chart, tooltips                            |
+| `chart-main.js` | Chart orchestration and scales                                            |
+| `chart-renderers.js` | Bars/lines renderers and interactions                               |
+| `chart-layout.js` | Shared chart layout and axis helpers                                    |
+| `chart-tooltips.js` | Tooltip behavior and HTML builders                                    |
 | `data.js`      | Data loading, pitch binning, resort combobox setup                       |
 | `ui.js`        | Legend, stat cards, insights panel rendering                             |
 | `constants.js` | Shared constants: bin width, pitch range, colors, labels                 |
