@@ -2,6 +2,7 @@ import { COLORS, COLOR_LABELS, COLOR_HEX, RESORT_COLORS, STEEPNESS_INDEX_TOOLTIP
 import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { getRunsWithPitch } from "./data.js";
 import { showRunModal } from "./chart.js";
+import { escapeHtml } from "./sanitize.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -36,7 +37,7 @@ export function renderResortLegend(state) {
         ([key, name]) =>
           `<div class="legend-item resort-legend-item">` +
           `<span class="legend-swatch resort-swatch" style="background:${RESORT_COLORS[key]};opacity:0.85"></span>` +
-          `<span class="resort-label-key">Resort ${key}</span> <span class="resort-label-name">${name}</span>` +
+          `<span class="resort-label-key">Resort ${key}</span> <span class="resort-label-name">${escapeHtml(name)}</span>` +
           `</div>`
       )
       .join("");
@@ -66,9 +67,10 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
   const badge = elId === "stats-a" ? "a" : "b";
   const label = badge === "a" ? "A" : "B";
   if (!resortName || !runs || !runs.length) {
+    const displayName = resortName ? escapeHtml(resortName) : "Select a resort";
     el.innerHTML =
       `<div class="stat-card-header">` +
-      `<span class="stat-card-name stat-empty">${resortName || "Select a resort"}</span>` +
+      `<span class="stat-card-name stat-empty">${displayName}</span>` +
       `<span class="stat-card-badge ${badge}">${label}</span>` +
       `</div>`;
     return;
@@ -112,7 +114,7 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
 
   el.innerHTML =
     `<div class="stat-card-header">` +
-    `<span class="stat-card-name">${resortName}</span>` +
+    `<span class="stat-card-name">${escapeHtml(resortName)}</span>` +
     `<span class="stat-card-badge ${badge}">${label}</span>` +
     `</div>` +
     `<div class="stat-card-body">` +

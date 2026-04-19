@@ -1,5 +1,6 @@
 import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS, RUN_STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
+import { escapeHtml } from "./sanitize.js";
 
 /** Fills the run modal steepness column header (shared tooltip markup). Safe to call once at startup. */
 export function initRunModalSteepnessHeader() {
@@ -35,7 +36,7 @@ function makeBinLabel(lo, hi) {
 function buildSingleBinHtml(binLabel, resortName, bin) {
   const parts = COLORS.filter((c) => (bin.byColor[c] || 0) > 0)
     .map((c) => `${COLOR_LABELS[c]}: ${bin.byColor[c]}`);
-  const header = resortName ? `<div class="tip-resort">${resortName}</div>` : "";
+  const header = resortName ? `<div class="tip-resort">${escapeHtml(resortName)}</div>` : "";
   return (
     header +
     `<div class="tip-title">${binLabel}</div>` +
@@ -52,7 +53,7 @@ function buildMultiBinHtml(binLabel, entries) {
       .map((c) => `${COLOR_LABELS[c]}: ${bin.byColor[c]}`);
     if (!parts.length) return;
     const spacerClass = idx > 0 ? " tip-resort-spaced" : "";
-    html += `<div class="tip-resort${spacerClass}" style="color:${RESORT_COLORS[key]}">${name || "Resort " + key}</div>`;
+    html += `<div class="tip-resort${spacerClass}" style="color:${RESORT_COLORS[key]}">${escapeHtml(name || "Resort " + key)}</div>`;
     html += parts.map((p) => `<div class="tip-row">${p}</div>`).join("");
   });
   return html;
@@ -162,9 +163,9 @@ function renderModalTable() {
         `</td>`
       : `<td>—</td>`;
     tr.innerHTML =
-      `<td>${r.name}</td>` +
+      `<td>${escapeHtml(r.name)}</td>` +
       `<td>${r.pitch.toFixed(1)}%</td>` +
-      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${COLOR_LABELS[r.color] || r.difficulty}</span></span></td>` +
+      `<td><span class="modal-difficulty"><span class="modal-diff-dot" style="background:${hex}"></span><span class="modal-diff-label">${escapeHtml(COLOR_LABELS[r.color] || r.difficulty)}</span></span></td>` +
       steepnessCell;
     tbody.appendChild(tr);
   });
