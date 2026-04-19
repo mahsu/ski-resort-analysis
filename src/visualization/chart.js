@@ -1,6 +1,7 @@
 import { BIN_WIDTH, MAX_PITCH, COLORS, COLOR_LABELS, RESORT_COLORS, COLOR_HEX, PITCH_FIELDS, RUN_STEEPNESS_INDEX_TOOLTIP } from "./constants.js";
 import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { escapeHtml } from "./sanitize.js";
+import { buildStackedBarLayers, renderStackedBarLayers } from "./chart-primitives.js";
 
 /** Fills the run modal steepness column header (shared tooltip markup). Safe to call once at startup. */
 export function initRunModalSteepnessHeader() {
@@ -314,6 +315,10 @@ function computeScaleBounds(dataA, dataB, aggBins, totalA, totalB, state, aggreg
   return { maxVal, normalizedMax, hasResortData };
 }
 
+function buildBinLookup(bins) {
+  return new Map(bins.map((b) => [`${b.lo}-${b.hi}`, b]));
+}
+
 // ── Toggle button helper ─────────────────────────────────────────────────────
 
 export function bindToggle(idA, idB, onA, onB, onUpdate) {
@@ -452,44 +457,31 @@ export function drawChart(aggregate, resortCache, state) {
       }
 
       if (data) {
-        const normalize = state.normalizeY && total ? 100 / total : 1;
-        const stacked = data.bins.map((b) => {
-          let y0 = 0;
-          const out = { lo: b.lo, hi: b.hi };
-          COLORS.forEach((ck) => {
-            const y1 = y0 + (b.byColor[ck] || 0) * normalize;
-            out[ck] = { y0, y1 };
-            y0 = y1;
-          });
-          return out;
-        });
+        const normalizeFactor = state.normalizeY && total ? 100 / total : 1;
+        const layers = buildStackedBarLayers(data.bins, normalizeFactor);
+        const binsByRange = buildBinLookup(data.bins);
 
-        COLORS.map((ck) => ({
-          key: ck,
-          values: stacked.map((d) => ({ lo: d.lo, hi: d.hi, y0: d[ck].y0, y1: d[ck].y1 })),
-        })).forEach((layer) => {
-          pg.selectAll(`.bar-${key}-${layer.key}`)
-            .data(layer.values, (d) => `${d.lo}-${d.hi}`)
-            .join("rect")
-            .attr("class", `bar-${key}-${layer.key}`)
-            .attr("x", (d) => xScale(d.lo) + (xScale(d.hi) - xScale(d.lo) - barWidth) / 2)
-            .attr("width", barWidth)
-            .attr("y", (d) => panelYScale(d.y1))
-            .attr("height", (d) => Math.max(0, panelYScale(d.y0) - panelYScale(d.y1)))
-            .attr("fill", colorScale(layer.key))
-            .on("mouseenter", function (event, d) {
-              const bin = data.bins.find((b) => b.lo === d.lo && b.hi === d.hi);
-              if (!bin) return;
-              showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), name, bin));
-            })
-            .on("mousemove", (event) => moveTooltip(tooltipEl, event))
-            .on("mouseleave", () => hideTooltip(tooltipEl))
-            .on("click", (event, d) => {
-              hideTooltip(tooltipEl);
-              const runs = key === "A" ? runsA : runsB;
-              if (runs) showRunModal(runs, d.lo, d.hi, metric, name, aggregate);
-            })
-            .style("cursor", "pointer");
+        renderStackedBarLayers({
+          group: pg,
+          layers,
+          classPrefix: `bar-${key}-`,
+          dataKey: (d) => `${d.lo}-${d.hi}`,
+          xScale,
+          yScale: panelYScale,
+          barWidth,
+          colorScale,
+          onMouseEnter: (event, d) => {
+            const bin = binsByRange.get(`${d.lo}-${d.hi}`);
+            if (!bin) return;
+            showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), name, bin));
+          },
+          onMouseMove: (event) => moveTooltip(tooltipEl, event),
+          onMouseLeave: () => hideTooltip(tooltipEl),
+          onClick: (event, d) => {
+            hideTooltip(tooltipEl);
+            const runs = key === "A" ? runsA : runsB;
+            if (runs) showRunModal(runs, d.lo, d.hi, metric, name, aggregate);
+          },
         });
       }
 
@@ -537,23 +529,9 @@ export function drawChart(aggregate, resortCache, state) {
   function drawStackedBars(bins, total, opacity, seriesKey) {
     if (!bins.length) return;
     const prefix = seriesKey ? "bar-" + seriesKey + "-" : "bar-";
-    const normalize = state.normalizeY && total ? 100 / total : 1;
-    const stacked = bins.map((b) => {
-      let y0 = 0;
-      const out = { lo: b.lo, hi: b.hi };
-      COLORS.forEach((key) => {
-        const y1 = y0 + (b.byColor[key] || 0) * normalize;
-        out[key] = { y0, y1 };
-        y0 = y1;
-      });
-      return out;
-    });
-
-    const layers = COLORS.map((key) => ({
-      key,
-      values: stacked.map((d) => ({ lo: d.lo, hi: d.hi, y0: d[key].y0, y1: d[key].y1 })),
-    }));
-
+    const normalizeFactor = state.normalizeY && total ? 100 / total : 1;
+    const layers = buildStackedBarLayers(bins, normalizeFactor);
+    const binsByRange = buildBinLookup(bins);
     const barWidth = Math.max(2, (xScale(BIN_WIDTH) - xScale(0)) * 0.85);
     const resortLabel = seriesKey === "A"
       ? (state.resortA || "Resort A")
@@ -561,32 +539,30 @@ export function drawChart(aggregate, resortCache, state) {
       ? (state.resortB || "Resort B")
       : null;
 
-    layers.forEach((layer) => {
-      g.selectAll("." + prefix + layer.key)
-        .data(layer.values, (d) => `${prefix}${layer.key}-${d.lo}-${d.hi}`)
-        .join("rect")
-        .attr("class", prefix + layer.key)
-        .attr("x", (d) => xScale(d.lo) + (xScale(d.hi) - xScale(d.lo) - barWidth) / 2)
-        .attr("width", barWidth)
-        .attr("y", (d) => yScale(d.y1))
-        .attr("height", (d) => Math.max(0, yScale(d.y0) - yScale(d.y1)))
-        .attr("fill", colorScale(layer.key))
-        .attr("fill-opacity", opacity)
-        .attr("stroke", opacity < 1 ? "#f97316" : "none")
-        .attr("stroke-width", 1)
-        .on("mouseenter", function (event, d) {
-          const bin = bins.find((b) => b.lo === d.lo && b.hi === d.hi);
-          if (!bin) return;
-          showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), resortLabel, bin));
-        })
-        .on("mousemove", (event) => moveTooltip(tooltipEl, event))
-        .on("mouseleave", () => hideTooltip(tooltipEl))
-        .on("click", (event, d) => {
-          hideTooltip(tooltipEl);
-          const runs = seriesKey === "A" ? runsA : runsB;
-          if (runs && resortLabel) showRunModal(runs, d.lo, d.hi, metric, resortLabel, aggregate);
-        })
-        .style("cursor", "pointer");
+    renderStackedBarLayers({
+      group: g,
+      layers,
+      classPrefix: prefix,
+      dataKey: (d, layerKey) => `${prefix}${layerKey}-${d.lo}-${d.hi}`,
+      xScale,
+      yScale,
+      barWidth,
+      colorScale,
+      fillOpacity: opacity,
+      stroke: opacity < 1 ? "#f97316" : "none",
+      strokeWidth: 1,
+      onMouseEnter: (event, d) => {
+        const bin = binsByRange.get(`${d.lo}-${d.hi}`);
+        if (!bin) return;
+        showTooltip(tooltipEl, event, buildSingleBinHtml(makeBinLabel(d.lo, d.hi), resortLabel, bin));
+      },
+      onMouseMove: (event) => moveTooltip(tooltipEl, event),
+      onMouseLeave: () => hideTooltip(tooltipEl),
+      onClick: (event, d) => {
+        hideTooltip(tooltipEl);
+        const runs = seriesKey === "A" ? runsA : runsB;
+        if (runs && resortLabel) showRunModal(runs, d.lo, d.hi, metric, resortLabel, aggregate);
+      },
     });
   }
 
