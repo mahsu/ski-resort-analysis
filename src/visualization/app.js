@@ -1,7 +1,8 @@
 import { loadAggregate, loadResort, setupResortCombobox } from "./data.js";
-import { drawChart, bindToggle } from "./chart.js";
+import { drawChart, bindToggle } from "./chart-main.js";
 import { initRunModalSteepnessHeader } from "./run-modal.js";
 import { renderLegend, renderResortLegend, renderStatCard, renderInsights } from "./ui.js";
+import { metricFromUrlValue, metricToUrlValue } from "./metric-meta.js";
 
 let aggregate = null;
 const resortCache = {};
@@ -54,11 +55,21 @@ function syncUrlParams() {
   const params = new URLSearchParams();
   if (state.resortA) params.set("a", state.resortA);
   if (state.resortB) params.set("b", state.resortB);
-  if (state.metric !== "average_pitch") params.set("metric", "max");
+  const metricParam = metricToUrlValue(state.metric);
+  if (metricParam) params.set("metric", metricParam);
   if (state.chartMode !== "bars") params.set("chart", "lines");
   if (!state.showAggregate) params.set("aggregate", "0");
   if (state.normalizeY) params.set("norm", "1");
   history.replaceState(null, "", params.toString() ? "?" + params.toString() : location.pathname);
+}
+
+function bindCheckbox(id, onChange) {
+  const checkbox = $(id);
+  checkbox.addEventListener("change", (event) => {
+    onChange(Boolean(event.target.checked));
+    syncUrlParams();
+    update();
+  });
 }
 
 function onResortChange(which, name) {
@@ -93,8 +104,8 @@ function init() {
       const comboB = setupResortCombobox("resort-b", data.resort_names, (name) => onResortChange("b", name));
       renderLegend();
 
-      if (params.get("metric") === "max") {
-        state.metric = "max_pitch";
+      state.metric = metricFromUrlValue(params.get("metric"));
+      if (state.metric === "max_pitch") {
         $("metric-avg").classList.remove("active");
         $("metric-max").classList.add("active");
       }
@@ -129,15 +140,11 @@ function init() {
         $("normalize-y").checked = true;
       }
 
-      $("show-aggregate").addEventListener("change", (e) => {
-        state.showAggregate = e.target.checked;
-        syncUrlParams();
-        update();
+      bindCheckbox("show-aggregate", (isChecked) => {
+        state.showAggregate = isChecked;
       });
-      $("normalize-y").addEventListener("change", (e) => {
-        state.normalizeY = e.target.checked;
-        syncUrlParams();
-        update();
+      bindCheckbox("normalize-y", (isChecked) => {
+        state.normalizeY = isChecked;
       });
 
       const hasPreselect = (paramA && validNames.has(paramA)) || (paramB && validNames.has(paramB));

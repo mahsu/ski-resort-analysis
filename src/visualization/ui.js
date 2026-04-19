@@ -3,6 +3,8 @@ import { steepnessInfoTriggerHtml } from "./steepness-info-trigger.js";
 import { getRunsWithPitch } from "./data.js";
 import { showRunModal } from "./run-modal.js";
 import { escapeHtml } from "./sanitize.js";
+import { getMetricMeta } from "./metric-meta.js";
+import { median, percentileRank } from "./stats.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -47,13 +49,6 @@ export function renderResortLegend(state) {
   }
 }
 
-function median(xs) {
-  if (!xs.length) return null;
-  const s = [...xs].sort((a, b) => a - b);
-  const n = s.length;
-  return (s[(n - 1) >> 1] + s[n >> 1]) / 2;
-}
-
 function pctRunsAbove(runs, metric, thresholdPct) {
   const withPitch = getRunsWithPitch(runs, metric);
   if (!withPitch.length) return null;
@@ -83,7 +78,7 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
   COLORS.forEach((c) => {
     byColor[c] = runs.filter((r) => (r.color || "").toLowerCase() === c).length;
   });
-  const metricLabel = metric === "average_pitch" ? "Avg pitch (median)" : "Max pitch (median)";
+  const metricLabel = `${getMetricMeta(metric).shortLabel} (median)`;
   const totalRuns = runs.length;
   const showPct = state.normalizeY && totalRuns > 0;
   const diffItems = COLORS.map((c) => {
@@ -130,15 +125,6 @@ export function renderStatCard(elId, resortName, runs, state, aggregate) {
     e.preventDefault();
     showRunModal(runs, 0, Infinity, state.metric, resortName, aggregate, { col: "name", dir: 1 });
   });
-}
-
-function percentileRank(sortedArr, value) {
-  if (!sortedArr.length || value == null) return null;
-  let count = 0;
-  for (let i = 0; i < sortedArr.length; i++) {
-    if (sortedArr[i] < value) count++;
-  }
-  return Math.round((count / sortedArr.length) * 100);
 }
 
 /** Max number of insight cards to show in the insights panel. */
