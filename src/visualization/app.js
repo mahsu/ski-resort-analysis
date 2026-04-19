@@ -1,5 +1,6 @@
 import { loadAggregate, loadResort, setupResortCombobox } from "./data.js";
-import { drawChart, bindToggle, initRunModalSteepnessHeader } from "./chart.js";
+import { drawChart, bindToggle } from "./chart.js";
+import { initRunModalSteepnessHeader } from "./run-modal.js";
 import { renderLegend, renderResortLegend, renderStatCard, renderInsights } from "./ui.js";
 
 let aggregate = null;
